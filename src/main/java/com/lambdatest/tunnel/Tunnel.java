@@ -29,40 +29,37 @@ public class Tunnel {
     private final Map<String, String> parameters;
 
     public Tunnel() {
-
         parameters = new HashMap<String, String>();
-        parameters.put("config", "-config");
-        parameters.put("controller", "-controller");
-        parameters.put("cui", "-cui");
-        parameters.put("customSSHHost", "-customSSHHost");
-        parameters.put("customSSHPort", "-customSSHPort");
-        parameters.put("customSSHPrivateKey", "-customSSHPrivateKey");
-        parameters.put("customSSHUser", "-customSSHUser");
-        parameters.put("dir", "-dir");
-        parameters.put("dns", "-dns");
-        parameters.put("emulateChrome", "-emulateChrome");
-        parameters.put("env", "-env");
-        parameters.put("infoAPIPort", "-infoAPIPort");
-        parameters.put("key", "-key");
-        parameters.put("localDomains", "-local-domains");
-        parameters.put("logFile", "-logFile");
-        parameters.put("mode", "-mode");
-        parameters.put("nows", "-nows");
-        parameters.put("outputConfig", "-outputConfig");
-        parameters.put("pac", "-pac");
-        parameters.put("pidfile", "-pidfile");
-        parameters.put("port", "-port");
-        parameters.put("proxyHost", "-proxy-host");
-        parameters.put("proxyPass", "-proxy-pass");
-        parameters.put("proxyPort", "-proxy-port");
-        parameters.put("proxyUser", "-proxy-user");
-        parameters.put("remoteDebug", "-remote-debug");
-        parameters.put("server", "-server");
-        parameters.put("sharedTunnel", "-shared-tunnel");
-        parameters.put("tunnelName", "-tunnelName");
-        parameters.put("user", "-user");
-        parameters.put("v", "-v");
-        parameters.put("version", "-version");
+        parameters.put("bypassHosts", "--bypassHosts");
+        parameters.put("callbackURL", "--callbackURL");
+        parameters.put("config", "--config");
+        parameters.put("controller", "--controller");
+        parameters.put("egress-only ", "--egress-only ");
+        parameters.put("dir", "--dir");
+        parameters.put("dns", "--dns");
+        parameters.put("emulateChrome", "--emulateChrome");
+        parameters.put("env", "--env");
+        parameters.put("help", "--help");
+        parameters.put("infoAPIPort", "--infoAPIPort");
+        parameters.put("ingress-only", "--ingress-only");
+        parameters.put("key", "--key");
+        parameters.put("localDomains", "--local-domains");
+        parameters.put("logFile", "--logFile");
+        parameters.put("mitm", "--mitm");
+        parameters.put("mode", "--mode");
+        parameters.put("noProxy", "--no-proxy");
+        parameters.put("pidfile", "--pidfile");
+        parameters.put("port", "--port");
+        parameters.put("proxyHost", "--proxy-host");
+        parameters.put("proxyPass", "--proxy-pass");
+        parameters.put("proxyPort", "--proxy-port");
+        parameters.put("proxyUser", "--proxy-user");
+        parameters.put("sharedTunnel", "--shared-tunnel");
+        parameters.put("sshConnType", "--sshConnType");
+        parameters.put("tunnelName", "--tunnelName");
+        parameters.put("user", "--user");
+        parameters.put("v", "--v");
+        parameters.put("version", "--version");
 
     }
 
@@ -85,13 +82,8 @@ public class Tunnel {
         clearTheFile();
         passParametersToTunnel(startOptions, "start");
 
+
         proc = runCommand(command);
-        BufferedReader stdoutbr = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        BufferedReader stderrbr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-        //allow time to generate logs
-        Thread.sleep(5000);
-        //verify the tunnel 
-        verifyTunnelStarted(options);
         
         //capture infoAPIPort of running tunnel and store in queue
         Q.add(String.valueOf(infoAPIPortValue));
@@ -102,8 +94,8 @@ public class Tunnel {
             	controlFlag = true;
                 throw new TunnelException("Username/AccessKey Cannot Be Empty");
             }
-    		
-            List<String> lines = Files.readAllLines(Paths.get("tunnel.log"));
+            String ltcbin = System.getProperty("user.dir");
+            List<String> lines = Files.readAllLines(Paths.get(ltcbin+"/tunnel.log"));
             for (String line : lines) {
                 if (line.contains("Err: Unable to authenticate user")) {
                     tunnelFlag = false;
@@ -170,15 +162,15 @@ public class Tunnel {
         command = new ArrayList<String>();
         command.add(binaryPath);
         
-        command.add("-user");
+        command.add("--user");
         if(options.get("user") != null)
             command.add(options.get("user"));
         
-        command.add("-key");
+        command.add("--key");
         if(options.get("key") != null)
             command.add(options.get("key"));
         
-        command.add("-infoAPIPort");
+        command.add("--infoAPIPort");
 	command.add(String.valueOf(infoAPIPortValue));
 
         for (Map.Entry<String, String> opt : options.entrySet()) {
@@ -190,43 +182,36 @@ public class Tunnel {
                 if (parameters.get(parameter) != null) {
                     command.add(parameters.get(parameter));
                 } else {
-                    command.add("-" + parameter);
+                    command.add("--" + parameter);
                 }
                 if (opt.getValue() != null) {
                     command.add(opt.getValue().trim());
                 }
             }
         }
-
-
+//Creating Cached Tunnel Component
     protected TunnelProcess runCommand(List<String> command) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         final Process process = processBuilder.start();
-        //Check if Tunnel Cache is successfully created
-        String ltcbin = System.getProperty("user.dir");
-
-        String osname = System.getProperty("os.name").toLowerCase();
-        isOSWindows = osname.contains("windows");
-        if (isOSWindows) {
-            ltcbin += "/ltcbin.exe";
-        }
-        else
-            ltcbin += "/.ltcbin";
-
-        File fileExist = new File(ltcbin);
-        if(fileExist.exists())
-        {
-            System.out.println("Found Cached Tunnel Component");
-            Thread.sleep(3000);
-        }
-        else {
-            System.out.println("Creating Cached Tunnel Component");
-        }
-        while(!fileExist.renameTo(fileExist)) {
-            // To wait until ltcbin cache is fully created.
-            Thread.sleep(3000);
-        }
-        process.destroy();
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                    if (line.contains("Err: Unable to authenticate user")) {
+                        tunnelFlag = false;
+                        controlFlag = true;
+                        throw new TunnelException("Invalid Username/AccessKey");
+                    }
+                    else if(line.contains("Tunnel ID")) {
+                        System.out.println("Tunnel Started Successfully");
+                        controlFlag = true;
+                        break;
+                    }
+                }
+            } catch (IOException | TunnelException ex) {
+                System.out.println(ex.getMessage());
+            }
 
         return new TunnelProcess() {
             public InputStream getInputStream() {

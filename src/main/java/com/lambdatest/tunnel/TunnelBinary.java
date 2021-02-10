@@ -12,7 +12,10 @@ import net.lingala.zip4j.exception.ZipException;
 
 class TunnelBinary {
 
-    private static final String BIN_URL = "https://downloads.lambdatest.com/tunnel/";
+    //mac Url = https://downloads.lambdatest.com/tunnel/v3/mac/64bit/LT_Mac.zip
+    //win Url = https://downloads.lambdatest.com/tunnel/v3/windows/64bit/LT_Windows.zip
+    //linux Url = https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip
+    private static final String BIN_URL = "https://downloads.lambdatest.com/tunnel/v3/";
 
     private String httpPath;
 
