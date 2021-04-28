@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.lambdatest</groupId>
 	<artifactId>lambdatest-tunnel-binary</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.5</version>
+	<version>1.0.8</version>
 
 	<name>lambdatest-maven-tunnel</name>
 	<description>LambdaTest tunnel binary in Java</description>
@@ -26,13 +26,13 @@
 			<organizationUrl>https://www.lambdatest.com</organizationUrl>
 		</developer>
 	</developers>
-	
+
 	<scm>
-        <connection>scm:git:git@github.com:LambdaTest/lambdatest-maven-tunnel.git</connection>
-        <developerConnection>scm:git:git@github.com:LambdaTest/lambdatest-maven-tunnel.git</developerConnection>
-        <url>git@github.com:LambdaTest/lambdatest-maven-tunnel.git</url>
-        <tag>HEAD</tag>
-  	</scm>
+		<connection>scm:git:git@github.com:LambdaTest/lambdatest-maven-tunnel.git</connection>
+		<developerConnection>scm:git:git@github.com:LambdaTest/lambdatest-maven-tunnel.git</developerConnection>
+		<url>git@github.com:LambdaTest/lambdatest-maven-tunnel.git</url>
+		<tag>HEAD</tag>
+	</scm>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -66,6 +66,11 @@
 			<groupId>net.lingala.zip4j</groupId>
 			<artifactId>zip4j</artifactId>
 			<version>2.2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -137,16 +142,16 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-				  <archive>
-					<manifest>
-					  <mainClass>fully.qualified.MainClass</mainClass>
-					</manifest>
-				  </archive>
-				  <descriptorRefs>
-					<descriptorRef>jar-with-dependencies</descriptorRef>
-				  </descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>fully.qualified.MainClass</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
 				</configuration>
-			  </plugin>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
