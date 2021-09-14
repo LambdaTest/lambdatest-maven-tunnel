@@ -1,0 +1,17 @@
+{"level":"info","time":"2021-04-26T07:15:57.797-0700","caller":"cobra/command.go:854","msg":"LambdaTest Tunnel version: 3.1.9"}
+{"level":"debug","time":"2021-04-26T07:15:57.802-0700","caller":"cmd/lt.go:155","msg":"Starting pipeline....."}
+{"level":"debug","time":"2021-04-26T07:15:57.802-0700","caller":"cmd/lt.go:155","msg":"Fetching config"}
+{"level":"warn","time":"2021-04-26T07:15:57.803-0700","caller":"core/lifecycle.go:49","msg":"Tunnel Name was not specified, using: 9eb8fdda-932d-4eaa-8a40-31b083ea25d5"}
+{"level":"debug","time":"2021-04-26T07:15:59.309-0700","caller":"cmd/lt.go:155","msg":"Remote config fetched"}
+{"level":"debug","time":"2021-04-26T07:15:59.309-0700","caller":"core/lifecycle.go:122","msg":"Starting sink proxy"}
+{"level":"debug","time":"2021-04-26T07:15:59.309-0700","caller":"runtime/asm_amd64.s:1373","msg":"Trying on port 22"}
+{"level":"debug","time":"2021-04-26T07:15:59.309-0700","caller":"runtime/asm_amd64.s:1373","msg":"Trying on port 443"}
+{"level":"debug","time":"2021-04-26T07:15:59.309-0700","caller":"runtime/asm_amd64.s:1373","msg":"Trying over ws"}
+{"level":"debug","time":"2021-04-26T07:15:59.412-0700","caller":"custom/setup.go:645","msg":"sink proxy started at :9090"}
+{"level":"debug","time":"2021-04-26T07:15:59.413-0700","caller":"runtime/asm_amd64.s:1373","msg":"WSS connection was successful"}
+{"level":"debug","time":"2021-04-26T07:15:59.746-0700","caller":"runtime/asm_amd64.s:1373","msg":"SSH connection over port 443 successful"}
+{"level":"debug","time":"2021-04-26T07:15:59.774-0700","caller":"runtime/asm_amd64.s:1373","msg":"SSH connection over port 22 successful"}
+{"level":"debug","time":"2021-04-26T07:15:59.806-0700","caller":"runtime/asm_amd64.s:1373","msg":"SSH connection over ws successful"}
+{"level":"info","time":"2021-04-26T07:15:59.806-0700","caller":"core/lifecycle.go:99","msg":"Using ssh(over_22) :: connection mode"}
+{"level":"debug","time":"2021-04-26T07:15:59.810-0700","caller":"core/lifecycle.go:208","msg":"Starting control ws connection at wss://ts.lambdatest.com/monitor"}
+{"level":"info","time":"2021-04-26T07:15:59.810-0700","caller":"cmd/lt.go:155","msg":"Launching tunnel"}
