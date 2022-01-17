@@ -80,7 +80,6 @@ public class Tunnel {
         parameters.put("load-balanced", "--load-balanced");
         parameters.put("v", "--v");
         parameters.put("version", "--version");
-        parameters.put("binary", "--binary");
     }
 
     /**
