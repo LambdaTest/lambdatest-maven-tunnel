@@ -1,0 +1,14 @@
+{"level":"info","time":"2021-04-26T06:39:45.608-0700","caller":"cobra/command.go:854","msg":"LambdaTest Tunnel version: 3.1.9"}
+{"level":"debug","time":"2021-04-26T06:39:45.609-0700","caller":"cmd/lt.go:155","msg":"Starting pipeline....."}
+{"level":"debug","time":"2021-04-26T06:39:45.610-0700","caller":"cmd/lt.go:155","msg":"Fetching config"}
+{"level":"warn","time":"2021-04-26T06:39:45.612-0700","caller":"core/lifecycle.go:49","msg":"Tunnel Name was not specified, using: 4b6294e3-4230-4d05-b7ee-f2fba8663787"}
+{"level":"error","time":"2021-04-26T06:39:45.612-0700","caller":"cmd/lt.go:155","msg":"ERR::CNF::FLD::VLD : Validation errors :  \nInvalid or missing field: Key "}
+{"level":"info","time":"2021-04-26T06:39:48.263-0700","caller":"cobra/command.go:854","msg":"LambdaTest Tunnel version: 3.1.9"}
+{"level":"debug","time":"2021-04-26T06:39:48.265-0700","caller":"cmd/lt.go:155","msg":"Starting pipeline....."}
+{"level":"debug","time":"2021-04-26T06:39:48.265-0700","caller":"cmd/lt.go:155","msg":"Fetching config"}
+{"level":"error","time":"2021-04-26T06:39:48.265-0700","caller":"cmd/lt.go:155","msg":"ERR::CNF::FLD::VLD : Validation errors :  \nInvalid or missing field: Key "}
+{"level":"info","time":"2021-04-26T06:39:50.936-0700","caller":"cobra/command.go:854","msg":"LambdaTest Tunnel version: 3.1.9"}
+{"level":"debug","time":"2021-04-26T06:39:50.937-0700","caller":"cmd/lt.go:155","msg":"Starting pipeline....."}
+{"level":"debug","time":"2021-04-26T06:39:50.937-0700","caller":"cmd/lt.go:155","msg":"Fetching config"}
+{"level":"warn","time":"2021-04-26T06:39:50.940-0700","caller":"core/lifecycle.go:49","msg":"Tunnel Name was not specified, using: cd6f192d-baf0-47c5-a50e-6fb96e8619a9"}
+{"level":"error","time":"2021-04-26T06:39:50.940-0700","caller":"cmd/lt.go:155","msg":"ERR::CNF::FLD::VLD : Validation errors :  \nInvalid or missing field: Key "}
