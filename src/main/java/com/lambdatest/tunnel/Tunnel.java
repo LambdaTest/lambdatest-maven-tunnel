@@ -10,32 +10,42 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import java.util.HashMap;
+import com.lambdatest.httpserver.HttpServer;
+import com.lambdatest.tunnel.TestDaemonThread1;
+import com.lambdatest.KillPort;
 
 /**
  * Creates and manages a secure tunnel connection to LambdaTest.
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced");
 
-    private  boolean tunnelFlag=false;
+    private boolean tunnelFlag = false;
 
     private int infoAPIPortValue;
 
-    private  Map<String, String> parameters;
+    private Map<String, String> parameters;
 
-    private  String TunnelID;
+    private String TunnelID;
+
+    private Integer tunnelCount = 0;
 
     TunnelBinary tunnelBinary = new TunnelBinary();
 
     private Process process = null;
 
     private ReentrantLock mutex = new ReentrantLock();
+
+    TestDaemonThread1 t1=new TestDaemonThread1();//creating thread
+
 
     public Tunnel() throws TunnelException {
         parameters = new HashMap<String, String>();
@@ -67,8 +77,10 @@ public class Tunnel {
         parameters.put("sshConnType", "--sshConnType");
         parameters.put("tunnelName", "--tunnelName");
         parameters.put("user", "--user");
+        parameters.put("load-balanced", "--load-balanced");
         parameters.put("v", "--v");
         parameters.put("version", "--version");
+        parameters.put("binary", "--binary");
     }
 
     /**
@@ -86,20 +98,47 @@ public class Tunnel {
             else
                 infoAPIPortValue = findAvailablePort();
 
-            System.out.println("infoAPIPortValue: "+infoAPIPortValue);
+            t1.setDaemon(true);//now t1 is daemon thread
+            t1.start();//starting threads
+
+            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
             clearTheFile();
-            verifyTunnelStarted(options);
-            String command = passParametersToTunnel(options,infoAPIPortValue);
+            verifyTunnelStarted(options, infoAPIPortValue);
+            System.out.println("tunnel Verified");
+            if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
+                if (options.get("tunnelName") == "" || options.get("tunnelName") == null) {
+                    options.put("tunnelName", "Maven_Tunnel_LambdaTest_" + options.get("key"));
+                }
+            }
+
+            try {
+                for (int i = 0; i < 5; i++) {
+
+                    // it will sleep the main thread for 1 sec
+                    // ,each time the for loop runs
+                    Thread.sleep(1000);
+
+                    // printing the value of the variable
+                }
+            }
+            catch (Exception e) {
+
+                // catching the exception
+                System.out.println(e);
+            }
+
+            String command = passParametersToTunnel(options);
             runCommand(command);
+
             mutex.unlock();
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
 
-    public void verifyTunnelStarted(Map<String, String> options) throws TunnelException {
-        if(options.get("user")==null ||  options.get("user")=="" || options.get("key")==null || options.get("key")=="") {
+    public void verifyTunnelStarted(Map<String, String> options, int infoAPIPortValue) throws TunnelException {
+        if (options.get("user") == null || options.get("user") == "" || options.get("key") == null || options.get("key") == "") {
             tunnelFlag = false;
             throw new TunnelException("Username/AccessKey Cannot Be Empty");
         }
@@ -107,14 +146,14 @@ public class Tunnel {
 
     public synchronized void stop() throws Exception {
         //Return the control if the tunnel is not even started
-        if(!tunnelFlag)
+        if (!tunnelFlag)
             return;
         try {
             mutex.lock();
             stopTunnel();
             process.waitFor();
             mutex.unlock();
-        }catch (Exception e){
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -135,7 +174,7 @@ public class Tunnel {
 
     public void stopTunnel() throws TunnelException {
         try {
-            String deleteEndpoint = "http://127.0.0.1:"+String.valueOf(infoAPIPortValue)+"/api/v1.0/stop";
+            String deleteEndpoint = "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
             HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
@@ -148,29 +187,44 @@ public class Tunnel {
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
-            System.out.println("Tunnel closed successfully");
-        }
-        catch (Exception e) {
-    	    throw new TunnelException("Tunnel with ID: "+TunnelID+" has been closed!");
+            KillPort killPort = new KillPort();
+            killPort.killProcess(t1.port);
+            System.out.println("Tunnel closed successfully && Port process killed");
+        } catch (Exception e) {
+            throw new TunnelException("Tunnel with ID: " + TunnelID + " has been closed!");
         }
     }
 
     // Give parameters to the tunnel for starting it in runCommand.
-    public String passParametersToTunnel(Map<String, String> options,  int infoAPIPortValue){
-        String command="";
-        String binaryPath = tunnelBinary.getBinaryPath();
-        command+=binaryPath;
+    public String passParametersToTunnel(Map<String, String> options) {
+        String command = "";
 
-        command+=" --user ";
-        if(options.get("user") != null)
-            command+=options.get("user");
-        
-        command+=" --key ";
-        if(options.get("key") != null)
-            command+=options.get("key");
-        
-        command+=" --infoAPIPort ";
-	    command+=String.valueOf(infoAPIPortValue);
+        if(options.get("binary") != null) {
+            command += options.get("binary");
+        } else {
+            String binaryPath = tunnelBinary.getBinaryPath();
+            command += binaryPath;
+        }
+
+        command += " --user ";
+        if (options.get("user") != null)
+            command += options.get("user");
+
+        command += " --key ";
+        if (options.get("key") != null)
+            command += options.get("key");
+
+        command += " --infoAPIPort ";
+        command += String.valueOf(infoAPIPortValue);
+
+        System.out.println("options load " + options.get("load-balanced"));
+        if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
+            command += " --load-balanced ";
+        }
+
+        if(t1.port!=null) {
+            command += " --callbackURL http://127.0.0.1:" + String.valueOf(t1.port);
+        }
 
         for (Map.Entry<String, String> opt : options.entrySet()) {
             String parameter = opt.getKey().trim();
@@ -179,22 +233,21 @@ public class Tunnel {
             }
 
             if (parameters.get(parameter) != null) {
-                command+=" "+parameters.get(parameter)+" ";
+                command += " " + parameters.get(parameter) + " ";
                 if (opt.getValue() != null) {
-                    command+=opt.getValue().trim();
+                    command += opt.getValue().trim();
                 }
             }
         }
         return command;
     }
 
-    //Creating Cached Tunnel Component
     public void runCommand(String command) throws IOException {
         try {
 //          ProcessBuilder processBuilder = new ProcessBuilder(command);
-            System.out.println("Command String: "+command);
+            System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
-            process= run.exec(command);
+            process = run.exec(command);
             Boolean update = false;
             long start = System.currentTimeMillis();
             long end = start;
@@ -203,34 +256,62 @@ public class Tunnel {
             String line = null;
             try {
                 while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
-                    if (line.contains("Err: Unable to authenticate user")) {
-                        throw new TunnelException("Invalid Username/AccessKey");
-                    } else if (line.contains("Tunnel ID")) {
-                        tunnelFlag = true;
-                        String[] arrOfStr = line.split(":", 2);
-                        if (arrOfStr.length==2){
-                            TunnelID = arrOfStr[1].trim();
-                        }
-                        System.out.println("Tunnel Started Successfully");
-                        break;
-                    } else if (line.contains("Downloading update")) {
+//                    System.out.println(line);
+//                    if (line.contains("Err: Unable to authenticate user")) {
+//                        throw new TunnelException("Invalid Username/AccessKey");
+//                    } else if (line.contains("Tunnel ID")) {
+//                        tunnelFlag = true;
+//                        String[] arrOfStr = line.split(":", 2);
+//                        if (arrOfStr.length == 2) {
+//                            TunnelID = arrOfStr[1].trim();
+//                        }
+//                        System.out.println("Tunnel Started Successfully");
+//                        break;
+//                    } else if (line.contains("Downloading update")) {
+//                        update = true;
+//                    } else if (((end - start) / 1000F) > 30) {
+//                        process.destroy();
+//                        System.out.println("Unable to start the tunnel. timeout exceeds");
+//                        break;
+//                    }
+//                    end = System.currentTimeMillis();
+//                }
+//                if (update) {
+//                    System.out.println("Tunnel is updated. restarting...");
+//                    runCommand(command);
+//                }
+//              } catch (IOException e) {
+//                e.printStackTrace();
+//              }
+                    if(line.contains("Downloading update")) {
                         update = true;
-                    } else if (((end - start) / 1000F) > 30) {
-                        process.destroy();
-                        System.out.println("Unable to start the tunnel. timeout exceeds");
-                        break;
+                    } else {
+                        if(update) {
+                            System.out.println("Tunnel is updated. restarting...");
+                            runCommand(command);
+                        }
+                        try {
+                            if(t1.port != null) {
+                                BufferedReader br = new BufferedReader(new FileReader(String.valueOf(t1.port) + ".txt"));
+                                if(br.readLine()!=null) {
+                                    tunnelFlag=true;
+                                    break;
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Not found any file");
+                        }
                     }
-                    end = System.currentTimeMillis();
+
+                    System.out.println(line);
+
+//                    break;
+
                 }
-                if (update) {
-                    System.out.println("Tunnel is updated. restarting...");
-                    runCommand(command);
-                }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return;
