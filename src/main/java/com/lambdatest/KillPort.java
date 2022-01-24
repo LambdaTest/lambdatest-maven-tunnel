@@ -2,14 +2,18 @@ package com.lambdatest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import com.lambdatest.Utils;
 
 public class KillPort {
     public static void killProcess(int port) {
 
         int pid = getPid(port);
+
         if (pid == 0) {
             return;
         }
+
+        Utils utils = new Utils();
 
         String[] command = { "taskkill", "/F", "/T", "/PID", Integer.toString(pid) };
         if (System.getProperty("os.name").startsWith("Linux")) {
@@ -20,7 +24,8 @@ public class KillPort {
         try {
             Process killer = Runtime.getRuntime().exec(command);
             int result = killer.waitFor();
-            System.out.println("Killed pid " + pid + " exitValue: " + result);
+            utils.logger("Killed pid " + pid + " exitValue: " + result);
+//            System.out.println();
 
         } catch (IOException e1) {
             e1.printStackTrace();

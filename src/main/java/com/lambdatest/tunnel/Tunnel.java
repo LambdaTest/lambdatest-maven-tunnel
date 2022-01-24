@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.lambdatest.Utils;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -26,7 +27,7 @@ import com.lambdatest.KillPort;
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm");
 
     private boolean tunnelFlag = false;
 
@@ -46,6 +47,8 @@ public class Tunnel {
 
     TestDaemonThread1 t1=new TestDaemonThread1();//creating thread
 
+    Utils utils = new Utils();
+
 
     public Tunnel() throws TunnelException {
         parameters = new HashMap<String, String>();
@@ -64,7 +67,6 @@ public class Tunnel {
         parameters.put("key", "--key");
         parameters.put("localDomains", "--local-domains");
         parameters.put("logFile", "--logFile");
-        parameters.put("mitm", "--mitm");
         parameters.put("mode", "--mode");
         parameters.put("noProxy", "--no-proxy");
         parameters.put("pidfile", "--pidfile");
@@ -80,7 +82,8 @@ public class Tunnel {
         parameters.put("load-balanced", "--load-balanced");
         parameters.put("v", "--v");
         parameters.put("version", "--version");
-        parameters.put("binary", "--binary");
+        parameters.put("basicAuth", "--basic-auth");
+        parameters.put("mitm", "--mitm");
     }
 
     /**
@@ -101,10 +104,13 @@ public class Tunnel {
             t1.setDaemon(true);//now t1 is daemon thread
             t1.start();//starting threads
 
-            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
+            utils.logger("infoAPIPortValue: " + infoAPIPortValue);
+//            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
             clearTheFile();
             verifyTunnelStarted(options, infoAPIPortValue);
-            System.out.println("tunnel Verified");
+
+            utils.logger("tunnel Verified");
+//            System.out.println("tunnel Verified");
             if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
                 if (options.get("tunnelName") == "" || options.get("tunnelName") == null) {
                     options.put("tunnelName", "Maven_Tunnel_LambdaTest_" + options.get("key"));
@@ -113,17 +119,9 @@ public class Tunnel {
 
             try {
                 for (int i = 0; i < 5; i++) {
-
-                    // it will sleep the main thread for 1 sec
-                    // ,each time the for loop runs
                     Thread.sleep(1000);
-
-                    // printing the value of the variable
                 }
-            }
-            catch (Exception e) {
-
-                // catching the exception
+            } catch (Exception e) {
                 System.out.println(e);
             }
 
@@ -189,7 +187,8 @@ public class Tunnel {
             }
             KillPort killPort = new KillPort();
             killPort.killProcess(t1.port);
-            System.out.println("Tunnel closed successfully && Port process killed");
+            utils.logger("Tunnel closed successfully && Port process killed");
+//            System.out.println("Tunnel closed successfully && Port process killed");
         } catch (Exception e) {
             throw new TunnelException("Tunnel with ID: " + TunnelID + " has been closed!");
         }
@@ -217,9 +216,19 @@ public class Tunnel {
         command += " --infoAPIPort ";
         command += String.valueOf(infoAPIPortValue);
 
-        System.out.println("options load " + options.get("load-balanced"));
+        utils.logger("options load " + options.get("load-balanced"));
+//        System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
+        }
+
+        if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
+            command += " --basic-auth ";
+            command += options.get("basicAuth");
+        }
+
+        if(options.get("mitm") != "" && options.get("mitm") !=null ) {
+            command += " --mitm ";
         }
 
         if(t1.port!=null) {
@@ -245,7 +254,8 @@ public class Tunnel {
     public void runCommand(String command) throws IOException {
         try {
 //          ProcessBuilder processBuilder = new ProcessBuilder(command);
-            System.out.println("Command String: " + command);
+            utils.logger("Command String: " + command);
+//            System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
@@ -287,7 +297,8 @@ public class Tunnel {
                         update = true;
                     } else {
                         if(update) {
-                            System.out.println("Tunnel is updated. restarting...");
+                            utils.logger("Tunnel is updated. restarting...");
+//                            System.out.println("Tunnel is updated. restarting...");
                             runCommand(command);
                         }
                         try {
@@ -303,9 +314,8 @@ public class Tunnel {
                         }
                     }
 
-                    System.out.println(line);
-
-//                    break;
+                    utils.logger(line);
+//                    System.out.println(line);
 
                 }
             } catch (Exception e) {

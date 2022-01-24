@@ -1,6 +1,7 @@
 package com.lambdatest.httpserver;
 import java.net.*;
 import java.io.*;
+import com.lambdatest.Utils;
 
 public class HttpServer{
 
@@ -13,10 +14,13 @@ public class HttpServer{
     }
 
     public static void main(int[] args) throws IOException {
+        Utils utils = new Utils();
         port = args[0];
         final ServerSocket server = new ServerSocket(port);
-        System.out.println("Listening for connection on port " + port  +  "  ....");
-        String name = null;
+
+        utils.logger("Listening for connection on port " + port  +  "  ....");
+
+//        System.out.println("Listening for connection on port " + port  +  "  ....");
         int length = 0;
         StringBuilder body = new StringBuilder();
         while (true){
@@ -33,7 +37,8 @@ public class HttpServer{
                     String len = line.substring(index).trim();
                     length = Integer.parseInt(len);
                 }
-                System.out.println(line);
+                utils.logger(line);
+//                System.out.println(line);
                 line = reader.readLine();
             }
             if (length > 0) {
@@ -47,19 +52,21 @@ public class HttpServer{
             try {
                 File myObj = new File(port + ".txt");
                 if (myObj.createNewFile()) {
-                    System.out.println("File created: " + myObj.getName());
+                    utils.logger("File created: " + myObj.getName());
+//                    System.out.println("File created: " + myObj.getName());
                     FileWriter myWriter = new FileWriter(port + ".txt");
                     myWriter.write(body.toString());
                     myWriter.close();
-                    System.out.println("Writing to file done");
-                    break;
+                    utils.logger("Writing to file done");
+//                    System.out.println("Writing to file done");
                 } else {
                     FileWriter myWriter = new FileWriter(port + ".txt");
                     myWriter.write(body.toString());
                     myWriter.close();
-                    System.out.println("Writing to file done");
-                    break;
+                    utils.logger("Writing to file done");
+//                    System.out.println("Writing to file done");
                 }
+                break;
             } catch (IOException e) {
                 System.out.println("An error occurred.");
                 e.printStackTrace();
