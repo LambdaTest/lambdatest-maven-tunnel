@@ -187,8 +187,7 @@ public class Tunnel {
             }
             KillPort killPort = new KillPort();
             killPort.killProcess(t1.port);
-            utils.logger("Tunnel closed successfully && Port process killed");
-//            System.out.println("Tunnel closed successfully && Port process killed");
+            System.out.println("Tunnel closed successfully && Port process killed");
         } catch (Exception e) {
             throw new TunnelException("Tunnel with ID: " + TunnelID + " has been closed!");
         }
