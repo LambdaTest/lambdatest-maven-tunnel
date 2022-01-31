@@ -2,9 +2,15 @@ package com.lambdatest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import com.lambdatest.Utils;
 
+/**
+ * kills the port active.
+ */
 public class KillPort {
+
+    /**
+     * Executes kill process
+     */
     public static void killProcess(int port) {
 
         int pid = getPid(port);
@@ -12,8 +18,6 @@ public class KillPort {
         if (pid == 0) {
             return;
         }
-
-        Utils utils = new Utils();
 
         String[] command = { "taskkill", "/F", "/T", "/PID", Integer.toString(pid) };
         if (System.getProperty("os.name").startsWith("Linux")) {
@@ -24,8 +28,7 @@ public class KillPort {
         try {
             Process killer = Runtime.getRuntime().exec(command);
             int result = killer.waitFor();
-            utils.logger("Killed pid " + pid + " exitValue: " + result);
-//            System.out.println();
+            System.out.println();
 
         } catch (IOException e1) {
             e1.printStackTrace();
@@ -34,6 +37,9 @@ public class KillPort {
         }
     }
 
+    /**
+     * gets the pid of port running
+     */
     public static int getPid(int port) {
         if (System.getProperty("os.name").startsWith("Windows")) {
             return getPidWin(port);
@@ -42,6 +48,9 @@ public class KillPort {
         }
     }
 
+    /**
+     * gets PID on Windows
+     */
     public static int getPidWin(int port) {
         String[] command = { "netstat", "-on" };
         try {
@@ -82,6 +91,9 @@ public class KillPort {
 
     }
 
+    /**
+     * Gets PID on Linux
+     */
     public static int getPidLinux(int port) {
         String[] command = { "netstat", "-anp" };
         try {
