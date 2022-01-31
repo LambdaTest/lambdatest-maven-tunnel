@@ -10,8 +10,6 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.lambdatest.Utils;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
@@ -46,8 +44,6 @@ public class Tunnel {
     private ReentrantLock mutex = new ReentrantLock();
 
     TestDaemonThread1 t1=new TestDaemonThread1();//creating thread
-
-    Utils utils = new Utils();
 
 
     public Tunnel() throws TunnelException {
@@ -90,7 +86,6 @@ public class Tunnel {
      * Starts Tunnel instance with options
      *
      * @param options Options for the Tunnel instance
-     * @throws Exception
      */
     public synchronized Boolean start(Map<String, String> options) {
         try {
@@ -104,13 +99,11 @@ public class Tunnel {
             t1.setDaemon(true);//now t1 is daemon thread
             t1.start();//starting threads
 
-            utils.logger("infoAPIPortValue: " + infoAPIPortValue);
-//            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
+            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
             clearTheFile();
             verifyTunnelStarted(options, infoAPIPortValue);
 
-            utils.logger("tunnel Verified");
-//            System.out.println("tunnel Verified");
+            System.out.println("tunnel Verified");
             if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
                 if (options.get("tunnelName") == "" || options.get("tunnelName") == null) {
                     options.put("tunnelName", "Maven_Tunnel_LambdaTest_" + options.get("key"));
@@ -187,8 +180,7 @@ public class Tunnel {
             }
             KillPort killPort = new KillPort();
             killPort.killProcess(t1.port);
-            utils.logger("Tunnel closed successfully && Port process killed");
-//            System.out.println("Tunnel closed successfully && Port process killed");
+            System.out.println("Tunnel closed successfully && Port process killed");
         } catch (Exception e) {
             throw new TunnelException("Tunnel with ID: " + TunnelID + " has been closed!");
         }
@@ -216,8 +208,7 @@ public class Tunnel {
         command += " --infoAPIPort ";
         command += String.valueOf(infoAPIPortValue);
 
-        utils.logger("options load " + options.get("load-balanced"));
-//        System.out.println("options load " + options.get("load-balanced"));
+        System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
         }
@@ -254,8 +245,7 @@ public class Tunnel {
     public void runCommand(String command) throws IOException {
         try {
 //          ProcessBuilder processBuilder = new ProcessBuilder(command);
-            utils.logger("Command String: " + command);
-//            System.out.println("Command String: " + command);
+            System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
@@ -297,8 +287,7 @@ public class Tunnel {
                         update = true;
                     } else {
                         if(update) {
-                            utils.logger("Tunnel is updated. restarting...");
-//                            System.out.println("Tunnel is updated. restarting...");
+                            System.out.println("Tunnel is updated. restarting...");
                             runCommand(command);
                         }
                         try {
@@ -306,6 +295,7 @@ public class Tunnel {
                                 BufferedReader br = new BufferedReader(new FileReader(String.valueOf(t1.port) + ".txt"));
                                 if(br.readLine()!=null) {
                                     tunnelFlag=true;
+                                    System.out.println("Tunnel Started Successfully");
                                     break;
                                 }
                             }
@@ -314,8 +304,7 @@ public class Tunnel {
                         }
                     }
 
-                    utils.logger(line);
-//                    System.out.println(line);
+                    System.out.println(line);
 
                 }
             } catch (Exception e) {
