@@ -1,6 +1,7 @@
 package com.lambdatest.tunnel;
 
 import java.io.*;
+import java.nio.file.*;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.URL;
@@ -80,7 +81,7 @@ public class Tunnel {
         parameters.put("version", "--version");
         parameters.put("basicAuth", "--basic-auth");
         parameters.put("mitm", "--mitm");
-        parameters.put("skip-upgrade", "--skip-upgrade");
+        //parameters.put("skip-upgrade", "--skip-upgrade");
     }
 
     /**
@@ -179,6 +180,12 @@ public class Tunnel {
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
+            Path pathOfFile = Paths.get(t1.port + ".txt");
+            boolean result = Files.deleteIfExists(pathOfFile);
+            if (result)
+                System.out.println("File is deleted");
+            else
+                System.out.println("File does not exists");
             KillPort killPort = new KillPort();
             killPort.killProcess(t1.port);
             System.out.println("Tunnel closed successfully && Port process killed");
@@ -213,9 +220,9 @@ public class Tunnel {
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
         }
-        if (options.get("skip-upgrade") != "" && options.get("skip-upgrade") != null) {
-            command += " --skip-upgrade ";
-        }
+//        if (options.get("skip-upgrade") != "" && options.get("skip-upgrade") != null) {
+//            command += " --skip-upgrade ";
+//        }
 
         if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
             command += " --basic-auth ";
