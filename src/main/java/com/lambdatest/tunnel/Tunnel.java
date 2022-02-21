@@ -80,6 +80,7 @@ public class Tunnel {
         parameters.put("version", "--version");
         parameters.put("basicAuth", "--basic-auth");
         parameters.put("mitm", "--mitm");
+        parameters.put("skip-upgrade", "--skip-upgrade");
     }
 
     /**
@@ -211,6 +212,9 @@ public class Tunnel {
         System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
+        }
+        if (options.get("skip-upgrade") != "" && options.get("skip-upgrade") != null) {
+            command += " --skip-upgrade ";
         }
 
         if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
