@@ -34,10 +34,10 @@ class TunnelBinary {
             System.getProperty("java.io.tmpdir")
     };
 
-    TunnelBinary() throws TunnelException {
+    TunnelBinary(String binaryPathFromUser) throws TunnelException {
         initialize();
-        getBinary();
-        checkBinary();
+        getBinary(binaryPathFromUser);
+        checkBinary(binaryPathFromUser);
     }
 
     private static void downloadZipFile(String urlStr, String file) throws IOException {
@@ -83,8 +83,8 @@ class TunnelBinary {
         httpPath = BIN_URL + binFileName;
     }
 
-    private void checkBinary() throws TunnelException{
-        boolean binaryWorking = validateBinary();
+    private void checkBinary(String binaryPathFromUser) throws TunnelException{
+        boolean binaryWorking = validateBinary(binaryPathFromUser);
 
         //if binary not working, delete it and get new binary
         if(!binaryWorking){
@@ -96,19 +96,24 @@ class TunnelBinary {
         }
     }
 
-    private boolean validateBinary() throws TunnelException{
+    private boolean validateBinary(String binaryPathFromUser) throws TunnelException{
         Process process;
         String url = httpPath;
-        try {
-            File tunnelZip = new File(store+downloadFileName);
-            if(!tunnelZip.exists())
-                downloadZipFile(url, store+downloadFileName);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (binaryPathFromUser == null){
+            try {
+                File tunnelZip = new File(store+downloadFileName);
+                if(!tunnelZip.exists())
+                    downloadZipFile(url, store+downloadFileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Extracting the Zipped Tunnel");
+            unzip(destParentDir+downloadFileName, destParentDir);
+
         }
-        System.out.println("Extracting the Zipped Tunnel");
-        unzip(destParentDir+downloadFileName, destParentDir);
+
         try {
+            System.out.println(binaryPath);
             changePermissions(binaryPath);
             ProcessBuilder pb = new ProcessBuilder(binaryPath,"--version");
             process = pb.start();
@@ -157,7 +162,13 @@ class TunnelBinary {
         }
     }
 
-    private void getBinary() throws TunnelException {
+    private void getBinary(String binaryPathFromUser) throws TunnelException {
+        if (binaryPathFromUser != null){
+            binaryPath = binaryPathFromUser;
+            System.out.println("Binary Path provided by user");
+            return;
+        }
+
         destParentDir = getAvailableDirectory();
         store = destParentDir;
         binaryPath = destParentDir + "/LT";
@@ -167,6 +178,7 @@ class TunnelBinary {
 
         if (!new File(binaryPath).exists()) {
             System.out.println("Downloading Fresh Tunnel Package");
+            System.out.println(binaryPath);
         }
         else {
             System.out.println("Found Existing Tunnel Package");

@@ -38,7 +38,7 @@ public class Tunnel {
 
     private Integer tunnelCount = 0;
 
-    TunnelBinary tunnelBinary = new TunnelBinary();
+    TunnelBinary tunnelBinary;
 
     private Process process = null;
 
@@ -81,7 +81,7 @@ public class Tunnel {
         parameters.put("version", "--version");
         parameters.put("basicAuth", "--basic-auth");
         parameters.put("mitm", "--mitm");
-        //parameters.put("skip-upgrade", "--skip-upgrade");
+        parameters.put("skip-upgrade", "--skip-upgrade");
     }
 
     /**
@@ -90,7 +90,10 @@ public class Tunnel {
      * @param options Options for the Tunnel instance
      */
     public synchronized Boolean start(Map<String, String> options) {
+
         try {
+
+            tunnelBinary = new TunnelBinary(options.get("binary"));
             //Get path of downloaded tunnel in project directory
             mutex.lock();
             if (options.containsKey("infoAPIPort") && options.get("infoAPIPort").matches("^[0-9]+"))
@@ -126,6 +129,7 @@ public class Tunnel {
             mutex.unlock();
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -220,9 +224,9 @@ public class Tunnel {
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
         }
-//        if (options.get("skip-upgrade") != "" && options.get("skip-upgrade") != null) {
-//            command += " --skip-upgrade ";
-//        }
+        if (options.get("skip-upgrade") != "" && options.get("skip-upgrade") != null) {
+            command += " --skip-upgrade ";
+        }
 
         if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
             command += " --basic-auth ";
