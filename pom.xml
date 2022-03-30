@@ -6,7 +6,6 @@
 	<artifactId>lambdatest-tunnel-binary</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0.10</version>
-
 	<name>lambdatest-maven-tunnel</name>
 	<description>LambdaTest tunnel binary in Java</description>
 	<url>https://www.lambdatest.com</url>

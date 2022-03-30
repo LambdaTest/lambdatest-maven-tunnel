@@ -1,3 +1,4 @@
+
 # LambdaTest Maven Tunnel
 ![LambdaTest Logo](https://www.lambdatest.com/static/images/logo.svg)
 
@@ -79,3 +80,42 @@ For full list of tunnel parameters, please refer tunnel parameters documentation
 
 ## About LambdaTest
 [LambdaTest](https://www.lambdatest.com/) is a cloud based selenium grid infrastructure that can help you run automated cross browser compatibility tests on 2000+ different browser and operating system environments. LambdaTest supports all programming languages and frameworks that are supported with Selenium, and have easy integrations with all popular CI/CD platforms. It's a perfect solution to bring your [selenium automation testing](https://www.lambdatest.com/selenium-automation) to cloud based infrastructure that not only helps you increase your test coverage over multiple desktop and mobile browsers, but also allows you to cut down your test execution time by running tests on parallel.
+
+### Steps to publish
+1. Create a Ticket in OSSRH for new release using "support@lambdatest.com" credential.. Wait for approval.
+   Example:https://issues.sonatype.org/browse/OSSRH-66845
+2. Validate approval by login into https://oss.sonatype.org/#welcome using "support@lambdatest.com" credential.
+3. Generating gpg passphrase
+```java
+gpg --gen-key
+``` 
+4. Place below content after replacing PASSWORD with "support@lambdatest.com"`s password and PASSPHRASE with your gpg passphrase into ~/.m2/settings.xml file.
+```java
+<settings>
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>Lambdatest</username>
+      <password>PASSWORD</password>
+    </server>
+  </servers>
+  <profiles>
+    <profile>
+      <id>ossrh</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+<settings>
+      </activation>
+      <properties>
+        <gpg.executable>gpg</gpg.executable>
+        <gpg.passphrase>PASSPHRASE</gpg.passphrase>
+      </properties>
+    </profile>
+  </profiles>
+</settings>
+```
+5. Go inside lambdatest-mavan-tunnel and execute below command to deploy newer version to nexus repository manager.
+```java
+mvn clean deploy
+```
+6. After successfull deploy to nexus repository manager. Your central maven repository will be in sync with new version after few hours.(In my case took almost 2 days)
