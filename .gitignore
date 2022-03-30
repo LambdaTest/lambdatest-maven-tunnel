@@ -13,5 +13,10 @@ buildNumber.properties
 .project
 local.log
 settings.xml
+.classpath
+.idea/
+.settings
+lambdatest-tunnel-binary.iml
+lt.log
 
 /target/

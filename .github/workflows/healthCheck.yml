@@ -1,0 +1,22 @@
+name: Maven Health Check
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      LT_USERNAME: ${{ secrets.LT_USERNAME }}
+      LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Run Test
+        run: mvn clean test -P TunnelTestRunner

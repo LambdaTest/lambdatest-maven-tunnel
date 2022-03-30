@@ -73,10 +73,9 @@
 			<version>4.5.13</version>
 		</dependency>
 		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>6.14.3</version>
-			<scope>compile</scope>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-support</artifactId>
+			<version>2.52.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
