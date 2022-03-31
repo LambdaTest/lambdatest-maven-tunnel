@@ -5,8 +5,7 @@
 	<groupId>com.github.lambdatest</groupId>
 	<artifactId>lambdatest-tunnel-binary</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.8</version>
-
+	<version>1.0.10</version>
 	<name>lambdatest-maven-tunnel</name>
 	<description>LambdaTest tunnel binary in Java</description>
 	<url>https://www.lambdatest.com</url>
@@ -20,7 +19,7 @@
 
 	<developers>
 		<developer>
-			<name>Arpit Gupta</name>
+			<name>Chandrajeet Nagar</name>
 			<email>support@lambdatest.com</email>
 			<organization>LambdaTest</organization>
 			<organizationUrl>https://www.lambdatest.com</organizationUrl>
@@ -70,13 +69,12 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5</version>
+			<version>4.5.13</version>
 		</dependency>
 		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>6.14.3</version>
-			<scope>compile</scope>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-support</artifactId>
+			<version>2.52.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -91,7 +89,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
+				<version>1.6.12</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
@@ -115,7 +113,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -167,5 +165,6 @@
 				<version>2.4.2</version>
 			</plugin>
 		</plugins>
+
 	</build>
 </project>
