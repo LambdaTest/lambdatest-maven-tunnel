@@ -1,5 +1,6 @@
 
 # LambdaTest Maven Tunnel
+[![Maven Health Check](https://github.com/LambdaTest/lambdatest-maven-tunnel/actions/workflows/healthCheck.yml/badge.svg)](https://github.com/LambdaTest/lambdatest-maven-tunnel/actions/workflows/healthCheck.yml)
 ![LambdaTest Logo](https://www.lambdatest.com/static/images/logo.svg)
 
 ---
