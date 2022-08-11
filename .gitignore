@@ -18,5 +18,6 @@ settings.xml
 .settings
 lambdatest-tunnel-binary.iml
 lt.log
+.lambdatest
 
 /target/
