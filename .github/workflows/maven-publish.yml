@@ -3,6 +3,9 @@ on:
   release:
     types: [published]
 jobs:
+  env:
+    LT_USERNAME: ${{ secrets.LT_USERNAME }}
+    LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
   publish:
     if: startsWith(github.ref, 'refs/tags/prod-')
     runs-on: ubuntu-latest
@@ -17,7 +20,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
       - name: Publish package
-        run: mvn --batch-mode deploy
+        run: mvn clean deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
