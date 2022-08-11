@@ -3,12 +3,12 @@ on:
   release:
     types: [published]
 jobs:
-  env:
-    LT_USERNAME: ${{ secrets.LT_USERNAME }}
-    LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
   publish:
     if: startsWith(github.ref, 'refs/tags/prod-')
     runs-on: ubuntu-latest
+    env:
+        LT_USERNAME: ${{ secrets.LT_USERNAME }}
+        LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Maven Central Repository
