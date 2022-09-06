@@ -49,6 +49,11 @@ public class Tunnel {
 
     public Tunnel() throws TunnelException {
         parameters = new HashMap<String, String>();
+        parameters.put("pacfile","--pacfile");
+        parameters.put("mTLSHosts","--mTLSHosts");
+        parameters.put("clientKey","--clientKey");
+        parameters.put("clientCert","--clientCert");
+        parameters.put("allowHosts","--allowHosts");
         parameters.put("bypassHosts", "--bypassHosts");
         parameters.put("callbackURL", "--callbackURL");
         parameters.put("config", "--config");
