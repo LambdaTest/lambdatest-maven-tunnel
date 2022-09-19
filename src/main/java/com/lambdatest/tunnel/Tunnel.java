@@ -26,7 +26,7 @@ import com.lambdatest.KillPort;
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey", "clientCert", "allowHosts", "verbose");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm");
 
     private boolean tunnelFlag = false;
 
@@ -85,12 +85,6 @@ public class Tunnel {
         parameters.put("basicAuth", "--basic-auth");
         parameters.put("mitm", "--mitm");
         parameters.put("skip-upgrade", "--skip-upgrade");
-        parameters.put("pacfile","--pacfile");
-        parameters.put("mTLSHosts","--mTLSHosts");
-        parameters.put("clientKey","--clientKey");
-        parameters.put("clientCert","--clientCert");
-        parameters.put("allowHosts","--allowHosts");
-        parameters.put("verbose","--verbose");
     }
 
     /**
@@ -260,35 +254,6 @@ public class Tunnel {
 
         if(options.get("mitm") != "" && options.get("mitm") !=null ) {
             command += " --mitm ";
-        }
-
-        if(options.get("pacfile") != "" && options.get("pacfile") !=null ) {
-            command += " --pacfile ";
-            command += options.get("pacfile");
-        }
-
-        if(options.get("mTLSHosts") != "" && options.get("mTLSHosts") !=null ) {
-            command += " --mTLSHosts ";
-            command += options.get("mTLSHosts");
-        }
-
-        if(options.get("clientKey") != "" && options.get("clientKey") !=null ) {
-            command += " --clientKey ";
-            command += options.get("clientKey");
-        }
-
-        if(options.get("clientCert") != "" && options.get("clientCert") !=null ) {
-            command += " --clientCert ";
-            command += options.get("clientCert");
-        }
-
-        if(options.get("allowHosts") != "" && options.get("allowHosts") !=null ) {
-            command += " --allowHosts ";
-            command += options.get("allowHosts");
-        }
-
-        if(options.get("verbose") != "" && options.get("verbose") !=null ) {
-            command += " --verbose ";
         }
 
         if(t1.port!=null) {
