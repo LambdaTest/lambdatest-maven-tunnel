@@ -49,9 +49,6 @@ public class Tunnel {
 
     public Tunnel() throws TunnelException {
         parameters = new HashMap<String, String>();
-        parameters.put("pacfile","--pacfile");
-        parameters.put("mTLSHosts","--mTLSHosts");
-        parameters.put("allowHosts","--allowHosts");
         parameters.put("bypassHosts", "--bypassHosts");
         parameters.put("callbackURL", "--callbackURL");
         parameters.put("config", "--config");
@@ -222,22 +219,6 @@ public class Tunnel {
 
         command += " --infoAPIPort ";
         command += String.valueOf(infoAPIPortValue);
-
-    //Added three new tunnel parameters allowHosts, mTLSHosts, pacfile
-
-        command += " --allowHosts ";
-        if (options.get("allowHosts") != null)
-            command += options.get("allowHosts");
-
-        command += " --mTLSHosts ";
-        if (options.get("mTLSHosts") != null)
-            command += options.get("mTLSHosts");
-
-
-        command += " --pacfile ";
-        if (options.get("pacfile") != null)
-            command += options.get("pacfile");
-
 
         System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
