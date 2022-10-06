@@ -295,7 +295,7 @@ public class Tunnel {
     public void runCommand(String command) throws IOException {
         try {
 //          ProcessBuilder processBuilder = new ProcessBuilder(command);
-            System.out.println("Command String: " + command);
+//            System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
