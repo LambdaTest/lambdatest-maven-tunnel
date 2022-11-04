@@ -88,6 +88,7 @@ public class Tunnel {
         parameters.put("clientCert","--clientCert");
         parameters.put("allowHosts","--allowHosts");
         parameters.put("verbose","--verbose");
+        parameters.put("serverDomain","--server-domain");
     }
 
     /**
@@ -266,6 +267,11 @@ public class Tunnel {
         if(options.get("allowHosts") != "" && options.get("allowHosts") !=null ) {
             command += " --allowHosts ";
             command += options.get("allowHosts");
+        }
+
+        if(options.get("serverDomain") != "" && options.get("serverDomain") !=null ) {
+            command += " --server-domain ";
+            command += options.get("serverDomain");
         }
 
         if(options.get("verbose") != "" && options.get("verbose") !=null ) {
