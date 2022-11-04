@@ -26,7 +26,7 @@ import com.lambdatest.KillPort;
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey", "clientCert", "allowHosts", "verbose");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey", "clientCert", "allowHosts", "verbose","serverDomain");
 
     private boolean tunnelFlag = false;
 
