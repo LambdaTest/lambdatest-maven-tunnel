@@ -89,6 +89,7 @@ public class Tunnel {
         parameters.put("allowHosts","--allowHosts");
         parameters.put("verbose","--verbose");
         parameters.put("serverDomain","--server-domain");
+        parameters.put("usePrivateIp","--use-private-ip");
     }
 
     /**
