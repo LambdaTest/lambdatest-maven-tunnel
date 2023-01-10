@@ -26,7 +26,8 @@ import com.lambdatest.KillPort;
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey", "clientCert", "allowHosts", "verbose","serverDomain");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey",
+            "clientCert", "allowHosts", "verbose","serverDomain", "usePrivateIp");
 
     private boolean tunnelFlag = false;
 
@@ -89,6 +90,7 @@ public class Tunnel {
         parameters.put("allowHosts","--allowHosts");
         parameters.put("verbose","--verbose");
         parameters.put("serverDomain","--server-domain");
+        parameters.put("usePrivateIp","--use-private-ip");
     }
 
     /**
@@ -276,6 +278,10 @@ public class Tunnel {
 
         if(options.get("verbose") != "" && options.get("verbose") !=null ) {
             command += " --verbose ";
+        }
+
+        if(options.get("usePrivateIp") != "" && options.get("usePrivateIp") !=null ) {
+            command += " --use-private-ip ";
         }
 
         if(t1.port!=null) {
