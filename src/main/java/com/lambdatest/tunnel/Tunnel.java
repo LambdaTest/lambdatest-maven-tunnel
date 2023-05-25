@@ -418,6 +418,7 @@ public class Tunnel {
 
         if (options.get("retry-proxy-error-count") != "" && options.get("retry-proxy-error-count") != null) {
             commandArray.add("--retry-proxy-error-count");
+            commandArray.add(options.get("retry-proxy-error-count"));
         }
 
         if (t1.port != null) {
