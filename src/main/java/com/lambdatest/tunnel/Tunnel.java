@@ -26,8 +26,10 @@ import com.lambdatest.KillPort;
  */
 public class Tunnel {
 
-    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath", "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey",
-            "clientCert", "allowHosts", "verbose","serverDomain", "usePrivateIp");
+    private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath",
+            "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey",
+            "clientCert", "allowHosts", "verbose", "serverDomain", "usePrivateIp", "retry-proxy-error",
+            "retry-proxy-error-count");
 
     private boolean tunnelFlag = false;
 
@@ -45,8 +47,7 @@ public class Tunnel {
 
     private ReentrantLock mutex = new ReentrantLock();
 
-    TestDaemonThread1 t1=new TestDaemonThread1();//creating thread
-
+    TestDaemonThread1 t1 = new TestDaemonThread1();// creating thread
 
     public Tunnel() throws TunnelException {
         parameters = new HashMap<String, String>();
@@ -83,14 +84,16 @@ public class Tunnel {
         parameters.put("basicAuth", "--basic-auth");
         parameters.put("mitm", "--mitm");
         parameters.put("skip-upgrade", "--skip-upgrade");
-        parameters.put("pacfile","--pacfile");
-        parameters.put("mTLSHosts","--mTLSHosts");
-        parameters.put("clientKey","--clientKey");
-        parameters.put("clientCert","--clientCert");
-        parameters.put("allowHosts","--allowHosts");
-        parameters.put("verbose","--verbose");
-        parameters.put("serverDomain","--server-domain");
-        parameters.put("usePrivateIp","--use-private-ip");
+        parameters.put("pacfile", "--pacfile");
+        parameters.put("mTLSHosts", "--mTLSHosts");
+        parameters.put("clientKey", "--clientKey");
+        parameters.put("clientCert", "--clientCert");
+        parameters.put("allowHosts", "--allowHosts");
+        parameters.put("verbose", "--verbose");
+        parameters.put("serverDomain", "--server-domain");
+        parameters.put("usePrivateIp", "--use-private-ip");
+        parameters.put("retry-proxy-error", "--retry-proxy-error");
+        parameters.put("retry-proxy-error-count", "--retry-proxy-error-count");
     }
 
     /**
@@ -103,15 +106,15 @@ public class Tunnel {
         try {
 
             tunnelBinary = new TunnelBinary(options.get("binary"));
-            //Get path of downloaded tunnel in project directory
+            // Get path of downloaded tunnel in project directory
             mutex.lock();
             if (options.containsKey("infoAPIPort") && options.get("infoAPIPort").matches("^[0-9]+"))
                 infoAPIPortValue = Integer.parseInt(options.get("infoAPIPort"));
             else
                 infoAPIPortValue = findAvailablePort();
 
-            t1.setDaemon(true);//now t1 is daemon thread
-            t1.start();//starting threads
+            t1.setDaemon(true);// now t1 is daemon thread
+            t1.start();// starting threads
 
             System.out.println("infoAPIPortValue: " + infoAPIPortValue);
             clearTheFile();
@@ -132,9 +135,9 @@ public class Tunnel {
                 System.out.println(e);
             }
 
-//            Check if tunnel binary path contains spaces
+            // Check if tunnel binary path contains spaces
             String tunnelBinaryPath = "";
-            if(options.get("binary") != null) {
+            if (options.get("binary") != null) {
                 tunnelBinaryPath += options.get("binary");
             } else {
                 String path = tunnelBinary.getBinaryPath();
@@ -142,7 +145,7 @@ public class Tunnel {
             }
             boolean isWhiteSpaceInBinaryPath = tunnelBinaryPath.contains(" ");
             System.out.println("white space detected in binary path : " + isWhiteSpaceInBinaryPath);
-            if (isWhiteSpaceInBinaryPath){
+            if (isWhiteSpaceInBinaryPath) {
                 System.out.println("white space detected in binary path : " + tunnelBinaryPath);
                 String[] command = passParametersToTunnelV2(options);
                 runCommandV2(command);
@@ -163,14 +166,15 @@ public class Tunnel {
     }
 
     public void verifyTunnelStarted(Map<String, String> options, int infoAPIPortValue) throws TunnelException {
-        if (options.get("user") == null || options.get("user") == "" || options.get("key") == null || options.get("key") == "") {
+        if (options.get("user") == null || options.get("user") == "" || options.get("key") == null
+                || options.get("key") == "") {
             tunnelFlag = false;
             throw new TunnelException("Username/AccessKey Cannot Be Empty");
         }
     }
 
     public synchronized void stop() throws Exception {
-        //Return the control if the tunnel is not even started
+        // Return the control if the tunnel is not even started
         if (!tunnelFlag)
             return;
         try {
@@ -203,12 +207,12 @@ public class Tunnel {
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
             HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
-//            System.out.println("Executing request " + httpDelete.getRequestLine());
+            // System.out.println("Executing request " + httpDelete.getRequestLine());
 
             HttpResponse response = httpclient.execute(httpDelete);
             BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 
-            //Throw runtime exception if status code isn't 200
+            // Throw runtime exception if status code isn't 200
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
@@ -230,7 +234,7 @@ public class Tunnel {
     public String passParametersToTunnel(Map<String, String> options) {
         String command = "";
 
-        if(options.get("binary") != null) {
+        if (options.get("binary") != null) {
             command += options.get("binary");
         } else {
             String binaryPath = tunnelBinary.getBinaryPath();
@@ -256,54 +260,63 @@ public class Tunnel {
             command += " --skip-upgrade ";
         }
 
-        if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
+        if (options.get("basicAuth") != "" && options.get("basicAuth") != null) {
             command += " --basic-auth ";
             command += options.get("basicAuth");
         }
 
-        if(options.get("mitm") != "" && options.get("mitm") !=null ) {
+        if (options.get("mitm") != "" && options.get("mitm") != null) {
             command += " --mitm ";
         }
 
-        if(options.get("pacfile") != "" && options.get("pacfile") !=null ) {
+        if (options.get("pacfile") != "" && options.get("pacfile") != null) {
             command += " --pacfile ";
             command += options.get("pacfile");
         }
 
-        if(options.get("mTLSHosts") != "" && options.get("mTLSHosts") !=null ) {
+        if (options.get("mTLSHosts") != "" && options.get("mTLSHosts") != null) {
             command += " --mTLSHosts ";
             command += options.get("mTLSHosts");
         }
 
-        if(options.get("clientKey") != "" && options.get("clientKey") !=null ) {
+        if (options.get("clientKey") != "" && options.get("clientKey") != null) {
             command += " --clientKey ";
             command += options.get("clientKey");
         }
 
-        if(options.get("clientCert") != "" && options.get("clientCert") !=null ) {
+        if (options.get("clientCert") != "" && options.get("clientCert") != null) {
             command += " --clientCert ";
             command += options.get("clientCert");
         }
 
-        if(options.get("allowHosts") != "" && options.get("allowHosts") !=null ) {
+        if (options.get("allowHosts") != "" && options.get("allowHosts") != null) {
             command += " --allowHosts ";
             command += options.get("allowHosts");
         }
 
-        if(options.get("serverDomain") != "" && options.get("serverDomain") !=null ) {
+        if (options.get("serverDomain") != "" && options.get("serverDomain") != null) {
             command += " --server-domain ";
             command += options.get("serverDomain");
         }
 
-        if(options.get("verbose") != "" && options.get("verbose") !=null ) {
+        if (options.get("verbose") != "" && options.get("verbose") != null) {
             command += " --verbose ";
         }
 
-        if(options.get("usePrivateIp") != "" && options.get("usePrivateIp") !=null ) {
+        if (options.get("usePrivateIp") != "" && options.get("usePrivateIp") != null) {
             command += " --use-private-ip ";
         }
 
-        if(t1.port!=null) {
+        if (options.get("retry-proxy-error") != "" && options.get("retry-proxy-error") != null) {
+            command += " --retry-proxy-error ";
+        }
+
+        if (options.get("retry-proxy-error-count") != "" && options.get("retry-proxy-error-count") != null) {
+            command += " --retry-proxy-error-count ";
+            command += options.get("retry-proxy-error-count");
+        }
+
+        if (t1.port != null) {
             command += " --callbackURL http://127.0.0.1:" + String.valueOf(t1.port);
         }
 
@@ -323,13 +336,12 @@ public class Tunnel {
         return command;
     }
 
-
     // Give parameters to the tunnel for starting it in runCommand.
     public String[] passParametersToTunnelV2(Map<String, String> options) {
 
         ArrayList<String> commandArray = new ArrayList<String>();
 
-        if(options.get("binary") != null) {
+        if (options.get("binary") != null) {
             commandArray.add(options.get("binary"));
         } else {
             commandArray.add(tunnelBinary.getBinaryPath());
@@ -353,59 +365,66 @@ public class Tunnel {
             commandArray.add("--skip-upgrade");
         }
 
-        if(options.get("basicAuth") != "" && options.get("basicAuth") != null ) {
+        if (options.get("basicAuth") != "" && options.get("basicAuth") != null) {
             commandArray.add("--basic-auth");
             commandArray.add(options.get("basicAuth"));
         }
 
-        if(options.get("mitm") != "" && options.get("mitm") !=null ) {
+        if (options.get("mitm") != "" && options.get("mitm") != null) {
             commandArray.add("--mitm");
         }
 
-        if(options.get("pacfile") != "" && options.get("pacfile") !=null ) {
+        if (options.get("pacfile") != "" && options.get("pacfile") != null) {
             commandArray.add("--pacfile");
             commandArray.add(options.get("pacfile"));
         }
 
-        if(options.get("mTLSHosts") != "" && options.get("mTLSHosts") !=null ) {
+        if (options.get("mTLSHosts") != "" && options.get("mTLSHosts") != null) {
             commandArray.add("--mTLSHosts");
             commandArray.add(options.get("mTLSHosts"));
         }
 
-        if(options.get("clientKey") != "" && options.get("clientKey") !=null ) {
+        if (options.get("clientKey") != "" && options.get("clientKey") != null) {
             commandArray.add("--clientKey");
             commandArray.add(options.get("clientKey"));
         }
 
-        if(options.get("clientCert") != "" && options.get("clientCert") !=null ) {
+        if (options.get("clientCert") != "" && options.get("clientCert") != null) {
             commandArray.add("--clientCert");
             commandArray.add(options.get("clientCert"));
         }
 
-        if(options.get("allowHosts") != "" && options.get("allowHosts") !=null ) {
+        if (options.get("allowHosts") != "" && options.get("allowHosts") != null) {
             commandArray.add("--allowHosts");
             commandArray.add(options.get("allowHosts"));
         }
 
-        if(options.get("serverDomain") != "" && options.get("serverDomain") !=null ) {
+        if (options.get("serverDomain") != "" && options.get("serverDomain") != null) {
             commandArray.add("--server-domain");
             commandArray.add(options.get("serverDomain"));
         }
 
-        if(options.get("verbose") != "" && options.get("verbose") !=null ) {
+        if (options.get("verbose") != "" && options.get("verbose") != null) {
             commandArray.add("--verbose");
         }
 
-        if(options.get("usePrivateIp") != "" && options.get("usePrivateIp") !=null ) {
+        if (options.get("usePrivateIp") != "" && options.get("usePrivateIp") != null) {
             commandArray.add("--use-private-ip");
         }
 
-        if(t1.port!=null) {
+        if (options.get("retry-proxy-error") != "" && options.get("retry-proxy-error") != null) {
+            commandArray.add("--retry-proxy-error");
+        }
+
+        if (options.get("retry-proxy-error-count") != "" && options.get("retry-proxy-error-count") != null) {
+            commandArray.add("--retry-proxy-error-count");
+            commandArray.add(options.get("retry-proxy-error-count"));
+        }
+
+        if (t1.port != null) {
             commandArray.add("--callbackURL");
             commandArray.add("http://127.0.0.1:" + String.valueOf(t1.port));
         }
-
-
 
         for (Map.Entry<String, String> opt : options.entrySet()) {
             String parameter = opt.getKey().trim();
@@ -424,11 +443,10 @@ public class Tunnel {
         return commandV2;
     }
 
-
     public void runCommand(String command) throws IOException {
         try {
-//          ProcessBuilder processBuilder = new ProcessBuilder(command);
-//            System.out.println("Command String: " + command);
+            // ProcessBuilder processBuilder = new ProcessBuilder(command);
+            // System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
@@ -439,45 +457,46 @@ public class Tunnel {
             String line = null;
             try {
                 while ((line = reader.readLine()) != null) {
-//                    System.out.println(line);
-//                    if (line.contains("Err: Unable to authenticate user")) {
-//                        throw new TunnelException("Invalid Username/AccessKey");
-//                    } else if (line.contains("Tunnel ID")) {
-//                        tunnelFlag = true;
-//                        String[] arrOfStr = line.split(":", 2);
-//                        if (arrOfStr.length == 2) {
-//                            TunnelID = arrOfStr[1].trim();
-//                        }
-//                        System.out.println("Tunnel Started Successfully");
-//                        break;
-//                    } else if (line.contains("Downloading update")) {
-//                        update = true;
-//                    } else if (((end - start) / 1000F) > 30) {
-//                        process.destroy();
-//                        System.out.println("Unable to start the tunnel. timeout exceeds");
-//                        break;
-//                    }
-//                    end = System.currentTimeMillis();
-//                }
-//                if (update) {
-//                    System.out.println("Tunnel is updated. restarting...");
-//                    runCommand(command);
-//                }
-//              } catch (IOException e) {
-//                e.printStackTrace();
-//              }
-                    if(line.contains("Downloading update")) {
+                    // System.out.println(line);
+                    // if (line.contains("Err: Unable to authenticate user")) {
+                    // throw new TunnelException("Invalid Username/AccessKey");
+                    // } else if (line.contains("Tunnel ID")) {
+                    // tunnelFlag = true;
+                    // String[] arrOfStr = line.split(":", 2);
+                    // if (arrOfStr.length == 2) {
+                    // TunnelID = arrOfStr[1].trim();
+                    // }
+                    // System.out.println("Tunnel Started Successfully");
+                    // break;
+                    // } else if (line.contains("Downloading update")) {
+                    // update = true;
+                    // } else if (((end - start) / 1000F) > 30) {
+                    // process.destroy();
+                    // System.out.println("Unable to start the tunnel. timeout exceeds");
+                    // break;
+                    // }
+                    // end = System.currentTimeMillis();
+                    // }
+                    // if (update) {
+                    // System.out.println("Tunnel is updated. restarting...");
+                    // runCommand(command);
+                    // }
+                    // } catch (IOException e) {
+                    // e.printStackTrace();
+                    // }
+                    if (line.contains("Downloading update")) {
                         update = true;
                     } else {
-                        if(update) {
+                        if (update) {
                             System.out.println("Tunnel is updated. restarting...");
                             runCommand(command);
                         }
                         try {
-                            if(t1.port != null) {
-                                BufferedReader br = new BufferedReader(new FileReader(String.valueOf(t1.port) + ".txt"));
-                                if(br.readLine()!=null) {
-                                    tunnelFlag=true;
+                            if (t1.port != null) {
+                                BufferedReader br = new BufferedReader(
+                                        new FileReader(String.valueOf(t1.port) + ".txt"));
+                                if (br.readLine() != null) {
+                                    tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
                                     break;
                                 }
@@ -501,7 +520,7 @@ public class Tunnel {
 
     public void runCommandV2(String[] command) throws IOException {
         try {
-//          ProcessBuilder processBuilder = new ProcessBuilder(command);
+            // ProcessBuilder processBuilder = new ProcessBuilder(command);
             System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
@@ -513,45 +532,46 @@ public class Tunnel {
             String line = null;
             try {
                 while ((line = reader.readLine()) != null) {
-//                    System.out.println(line);
-//                    if (line.contains("Err: Unable to authenticate user")) {
-//                        throw new TunnelException("Invalid Username/AccessKey");
-//                    } else if (line.contains("Tunnel ID")) {
-//                        tunnelFlag = true;
-//                        String[] arrOfStr = line.split(":", 2);
-//                        if (arrOfStr.length == 2) {
-//                            TunnelID = arrOfStr[1].trim();
-//                        }
-//                        System.out.println("Tunnel Started Successfully");
-//                        break;
-//                    } else if (line.contains("Downloading update")) {
-//                        update = true;
-//                    } else if (((end - start) / 1000F) > 30) {
-//                        process.destroy();
-//                        System.out.println("Unable to start the tunnel. timeout exceeds");
-//                        break;
-//                    }
-//                    end = System.currentTimeMillis();
-//                }
-//                if (update) {
-//                    System.out.println("Tunnel is updated. restarting...");
-//                    runCommand(command);
-//                }
-//              } catch (IOException e) {
-//                e.printStackTrace();
-//              }
-                    if(line.contains("Downloading update")) {
+                    // System.out.println(line);
+                    // if (line.contains("Err: Unable to authenticate user")) {
+                    // throw new TunnelException("Invalid Username/AccessKey");
+                    // } else if (line.contains("Tunnel ID")) {
+                    // tunnelFlag = true;
+                    // String[] arrOfStr = line.split(":", 2);
+                    // if (arrOfStr.length == 2) {
+                    // TunnelID = arrOfStr[1].trim();
+                    // }
+                    // System.out.println("Tunnel Started Successfully");
+                    // break;
+                    // } else if (line.contains("Downloading update")) {
+                    // update = true;
+                    // } else if (((end - start) / 1000F) > 30) {
+                    // process.destroy();
+                    // System.out.println("Unable to start the tunnel. timeout exceeds");
+                    // break;
+                    // }
+                    // end = System.currentTimeMillis();
+                    // }
+                    // if (update) {
+                    // System.out.println("Tunnel is updated. restarting...");
+                    // runCommand(command);
+                    // }
+                    // } catch (IOException e) {
+                    // e.printStackTrace();
+                    // }
+                    if (line.contains("Downloading update")) {
                         update = true;
                     } else {
-                        if(update) {
+                        if (update) {
                             System.out.println("Tunnel is updated. restarting...");
                             runCommandV2(command);
                         }
                         try {
-                            if(t1.port != null) {
-                                BufferedReader br = new BufferedReader(new FileReader(String.valueOf(t1.port) + ".txt"));
-                                if(br.readLine()!=null) {
-                                    tunnelFlag=true;
+                            if (t1.port != null) {
+                                BufferedReader br = new BufferedReader(
+                                        new FileReader(String.valueOf(t1.port) + ".txt"));
+                                if (br.readLine() != null) {
+                                    tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
                                     break;
                                 }
