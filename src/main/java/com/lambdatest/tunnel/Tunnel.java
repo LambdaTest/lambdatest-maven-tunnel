@@ -115,8 +115,6 @@ public class Tunnel {
 
             t1.setDaemon(true);// now t1 is daemon thread
             t1.start();// starting threads
-
-            System.out.println("infoAPIPortValue: " + infoAPIPortValue);
             clearTheFile();
             verifyTunnelStarted(options, infoAPIPortValue);
 
@@ -144,9 +142,7 @@ public class Tunnel {
                 tunnelBinaryPath += path;
             }
             boolean isWhiteSpaceInBinaryPath = tunnelBinaryPath.contains(" ");
-            System.out.println("white space detected in binary path : " + isWhiteSpaceInBinaryPath);
             if (isWhiteSpaceInBinaryPath) {
-                System.out.println("white space detected in binary path : " + tunnelBinaryPath);
                 String[] command = passParametersToTunnelV2(options);
                 runCommandV2(command);
 
@@ -207,7 +203,6 @@ public class Tunnel {
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
             HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
-            // System.out.println("Executing request " + httpDelete.getRequestLine());
 
             HttpResponse response = httpclient.execute(httpDelete);
             BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
@@ -216,7 +211,7 @@ public class Tunnel {
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
-            Path pathOfFile = Paths.get(t1.port + ".txt");
+            Path pathOfFile = Paths.get(".lambdatest/tunnelprocs/" +t1.port + ".txt");
             boolean result = Files.deleteIfExists(pathOfFile);
             if (result)
                 System.out.println("File is deleted");
@@ -252,7 +247,6 @@ public class Tunnel {
         command += " --infoAPIPort ";
         command += String.valueOf(infoAPIPortValue);
 
-        System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             command += " --load-balanced ";
         }
@@ -357,7 +351,6 @@ public class Tunnel {
         commandArray.add("--infoAPIPort");
         commandArray.add(String.valueOf(infoAPIPortValue));
 
-        System.out.println("options load " + options.get("load-balanced"));
         if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
             commandArray.add("--load-balanced");
         }
@@ -457,33 +450,6 @@ public class Tunnel {
             String line = null;
             try {
                 while ((line = reader.readLine()) != null) {
-                    // System.out.println(line);
-                    // if (line.contains("Err: Unable to authenticate user")) {
-                    // throw new TunnelException("Invalid Username/AccessKey");
-                    // } else if (line.contains("Tunnel ID")) {
-                    // tunnelFlag = true;
-                    // String[] arrOfStr = line.split(":", 2);
-                    // if (arrOfStr.length == 2) {
-                    // TunnelID = arrOfStr[1].trim();
-                    // }
-                    // System.out.println("Tunnel Started Successfully");
-                    // break;
-                    // } else if (line.contains("Downloading update")) {
-                    // update = true;
-                    // } else if (((end - start) / 1000F) > 30) {
-                    // process.destroy();
-                    // System.out.println("Unable to start the tunnel. timeout exceeds");
-                    // break;
-                    // }
-                    // end = System.currentTimeMillis();
-                    // }
-                    // if (update) {
-                    // System.out.println("Tunnel is updated. restarting...");
-                    // runCommand(command);
-                    // }
-                    // } catch (IOException e) {
-                    // e.printStackTrace();
-                    // }
                     if (line.contains("Downloading update")) {
                         update = true;
                     } else {
@@ -494,7 +460,7 @@ public class Tunnel {
                         try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
-                                        new FileReader(String.valueOf(t1.port) + ".txt"));
+                                        new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
                                 if (br.readLine() != null) {
                                     tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
@@ -502,11 +468,9 @@ public class Tunnel {
                                 }
                             }
                         } catch (Exception e) {
-                            System.out.println("Not found any file");
+                            // System.out.println("Not found any file");
                         }
                     }
-
-                    System.out.println(line);
 
                 }
             } catch (Exception e) {
@@ -521,7 +485,6 @@ public class Tunnel {
     public void runCommandV2(String[] command) throws IOException {
         try {
             // ProcessBuilder processBuilder = new ProcessBuilder(command);
-            System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
@@ -532,33 +495,6 @@ public class Tunnel {
             String line = null;
             try {
                 while ((line = reader.readLine()) != null) {
-                    // System.out.println(line);
-                    // if (line.contains("Err: Unable to authenticate user")) {
-                    // throw new TunnelException("Invalid Username/AccessKey");
-                    // } else if (line.contains("Tunnel ID")) {
-                    // tunnelFlag = true;
-                    // String[] arrOfStr = line.split(":", 2);
-                    // if (arrOfStr.length == 2) {
-                    // TunnelID = arrOfStr[1].trim();
-                    // }
-                    // System.out.println("Tunnel Started Successfully");
-                    // break;
-                    // } else if (line.contains("Downloading update")) {
-                    // update = true;
-                    // } else if (((end - start) / 1000F) > 30) {
-                    // process.destroy();
-                    // System.out.println("Unable to start the tunnel. timeout exceeds");
-                    // break;
-                    // }
-                    // end = System.currentTimeMillis();
-                    // }
-                    // if (update) {
-                    // System.out.println("Tunnel is updated. restarting...");
-                    // runCommand(command);
-                    // }
-                    // } catch (IOException e) {
-                    // e.printStackTrace();
-                    // }
                     if (line.contains("Downloading update")) {
                         update = true;
                     } else {
@@ -569,7 +505,7 @@ public class Tunnel {
                         try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
-                                        new FileReader(String.valueOf(t1.port) + ".txt"));
+                                        new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
                                 if (br.readLine() != null) {
                                     tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
@@ -577,11 +513,10 @@ public class Tunnel {
                                 }
                             }
                         } catch (Exception e) {
-                            System.out.println("Not found any file");
+                            // System.out.println("Not found any file");
                         }
                     }
 
-                    System.out.println(line);
 
                 }
             } catch (Exception e) {

@@ -107,13 +107,11 @@ class TunnelBinary {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("Extracting the Zipped Tunnel");
             unzip(destParentDir+downloadFileName, destParentDir);
 
         }
 
         try {
-            System.out.println(binaryPath);
             changePermissions(binaryPath);
             ProcessBuilder pb = new ProcessBuilder(binaryPath,"--version");
             process = pb.start();
@@ -125,7 +123,6 @@ class TunnelBinary {
                 stdout += line;
             }
             process.waitFor();
-            System.out.println("version: "+stdout);
             return true;
 
         }catch(IOException ex){
@@ -136,23 +133,31 @@ class TunnelBinary {
         }
     }
 
-    public static Boolean isZip(String source) throws IOException {
-        RandomAccessFile raf = new RandomAccessFile(source, "r");
-        long n = raf.readInt();
-        raf.close();
-        if (n == 0x504B0304) {
-            System.out.println("Should be a zip file");
+    public static Boolean isZip(String destination) throws IOException {
+        String osname = System.getProperty("os.name").toLowerCase();
+            if (osname.contains("windows")) {
+
+                File ltFile = new File(destination, "LT.exe");
+                if (ltFile.exists()) {
+                    return false;
+                }
+            }
+
+            // if (osname.contains("mac")) {
+
+            //     File ltFile = new File(destination, "LT");
+            //     if (ltFile.exists()) {
+            //         return false;
+            //     }
+            // }
             return true;
-        }
-        else {
-            System.out.println("Not a zip file");
-            return false;
-        }
     }
 
     public static void unzip(String source, String destination){
         try {
-            if (!isZip(source)) return;
+            
+            if (!isZip(destination)) return;
+            
             ZipFile zipFile = new ZipFile(source);
             zipFile.extractAll(destination);
         } catch (ZipException e) {
@@ -165,7 +170,6 @@ class TunnelBinary {
     private void getBinary(String binaryPathFromUser) throws TunnelException {
         if (binaryPathFromUser != null){
             binaryPath = binaryPathFromUser;
-            System.out.println("Binary Path provided by user");
             return;
         }
 
@@ -178,7 +182,6 @@ class TunnelBinary {
 
         if (!new File(binaryPath).exists()) {
             System.out.println("Downloading Fresh Tunnel Package");
-            System.out.println(binaryPath);
         }
         else {
             System.out.println("Found Existing Tunnel Package");
@@ -220,7 +223,6 @@ class TunnelBinary {
             }
 
             File f = new File(source);
-            System.out.println("Url: "+url);
             FileUtils.copyURLToFile(url, f);
 
             changePermissions(binaryPath);
