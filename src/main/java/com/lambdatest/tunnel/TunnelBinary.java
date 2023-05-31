@@ -143,13 +143,13 @@ class TunnelBinary {
                 }
             }
 
-            // if (osname.contains("mac")) {
+            if (osname.contains("mac")) {
 
-            //     File ltFile = new File(destination, "LT");
-            //     if (ltFile.exists()) {
-            //         return false;
-            //     }
-            // }
+                File ltFile = new File(destination, "LT");
+                if (ltFile.exists()) {
+                    return false;
+                }
+            }
             return true;
     }
 
