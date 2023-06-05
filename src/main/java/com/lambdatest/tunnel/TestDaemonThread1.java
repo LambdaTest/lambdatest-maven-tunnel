@@ -17,7 +17,6 @@ public class TestDaemonThread1 extends Thread {
             try {
                 port = HttpServer.findAvailablePort();
 //                utils.logger(port.toString());
-                System.out.println(port);
                 int[] myIntArray = {port};
                 httpServer.main(myIntArray);
             } catch (IOException e) {

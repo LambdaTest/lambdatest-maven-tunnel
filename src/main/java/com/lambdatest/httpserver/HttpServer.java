@@ -25,7 +25,6 @@ public class HttpServer{
         port = args[0];
         final ServerSocket server = new ServerSocket(port);
 
-        System.out.println("Listening for connection on port " + port  +  "  ....");
         int length = 0;
         StringBuilder body = new StringBuilder();
         while (true){
@@ -42,7 +41,6 @@ public class HttpServer{
                     String len = line.substring(index).trim();
                     length = Integer.parseInt(len);
                 }
-                System.out.println(line);
                 line = reader.readLine();
             }
             if (length > 0) {
@@ -54,18 +52,20 @@ public class HttpServer{
                 }
             }
             try {
-                File myObj = new File(port + ".txt");
+                File folder = new File(".lambdatest/tunnelprocs");
+                if (!folder.exists()) {
+                    folder.mkdir();
+                }
+                File myObj = new File(folder,port + ".txt");
                 if (myObj.createNewFile()) {
-                    System.out.println("File created: " + myObj.getName());
-                    FileWriter myWriter = new FileWriter(port + ".txt");
+                    FileWriter myWriter = new FileWriter(myObj);
                     myWriter.write(body.toString());
                     myWriter.close();
-                    System.out.println("Writing to file done");
+
                 } else {
-                    FileWriter myWriter = new FileWriter(port + ".txt");
+                    FileWriter myWriter = new FileWriter(myObj);
                     myWriter.write(body.toString());
                     myWriter.close();
-                    System.out.println("Writing to file done");
                 }
                 break;
             } catch (IOException e) {

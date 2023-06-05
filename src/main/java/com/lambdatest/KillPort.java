@@ -28,7 +28,6 @@ public class KillPort {
         try {
             Process killer = Runtime.getRuntime().exec(command);
             int result = killer.waitFor();
-            System.out.println();
 
         } catch (IOException e1) {
             e1.printStackTrace();

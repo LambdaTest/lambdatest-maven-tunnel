@@ -40,8 +40,6 @@ public class LambdaTestTunnelTest {
 		options.put("user", username);
 		options.put("key", access_key);
 
-		System.out.println(options.get("user"));
-
 		//start tunnel
 		t.start(options);
 		driver = new RemoteWebDriver(new URL("http://" + username + ":" + access_key + "@hub.lambdatest.com/wd/hub"), capabilities);
