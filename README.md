@@ -4,6 +4,7 @@
 ![LambdaTest Logo](https://www.lambdatest.com/resources/images/logos/logo.svg)
 
 ---
+Java bindings for LambdaTest Tunnel. It supports latest stable Java Versions 20.0, 17.0, etc.
 
 ### Prerequisites
 1. Maven is required to be installed:
@@ -32,7 +33,7 @@
 <dependency>
     <groupId>com.github.lambdatest</groupId>
 	  <artifactId>lambdatest-tunnel-binary</artifactId>
-    <version>1.0.4</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 ## Example
