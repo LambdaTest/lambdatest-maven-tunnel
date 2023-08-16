@@ -41,6 +41,10 @@ class TunnelBinary {
     }
 
     private static void downloadZipFile(String urlStr, String file) throws IOException {
+    final int MAX_RETRIES = 4;
+    final int RETRY_TIMEOUT_MS = 5000; // 5 seconds
+
+    for (int retry = 0; retry < MAX_RETRIES; retry++) {
         try {
             URL url = new URL(urlStr);
             URLConnection conn = url.openConnection();
@@ -52,12 +56,28 @@ class TunnelBinary {
                 out.write(b, 0, count);
             }
             out.close();
-            out.flush(); out.close(); in.close();
-
+            out.flush();
+            out.close();
+            in.close();
+            break; // Break out of the retry loop if download is successful
         } catch (IOException e) {
-            e.printStackTrace();
+            if (retry == MAX_RETRIES - 1) {
+                // If maximum retries reached, print the exception and exit the loop
+                e.printStackTrace();
+                break;
+            } else {
+                // Print retry message and sleep for the retry timeout
+                System.err.println("Failed to download the binary. Retrying in " + (RETRY_TIMEOUT_MS / 1000) + " seconds...");
+                try {
+                    Thread.sleep(RETRY_TIMEOUT_MS);
+                } catch (InterruptedException ex) {
+                    // Ignore InterruptedException
+                }
+            }
         }
     }
+}
+
 
     private void initialize() throws TunnelException {
         String osname = System.getProperty("os.name").toLowerCase();
