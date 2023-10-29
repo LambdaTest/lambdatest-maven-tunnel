@@ -454,7 +454,6 @@ public class Tunnel {
                         break; // Break the loop to restart the command
                     }
 
-                    // Assuming t1 is defined and initialized somewhere else in your code
                     try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
@@ -494,7 +493,6 @@ public class Tunnel {
                         break; // Break the loop to restart the command
                     }
 
-                    // Assuming t1 is defined and initialized somewhere else in your code
                      try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
