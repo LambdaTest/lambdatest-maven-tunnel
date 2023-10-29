@@ -5,8 +5,6 @@ import java.nio.file.*;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,7 +14,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import java.util.HashMap;
+
 import com.lambdatest.httpserver.HttpServer;
 import com.lambdatest.tunnel.TestDaemonThread1;
 import com.lambdatest.KillPort;
@@ -479,94 +477,81 @@ public class Tunnel {
     }
 
     public void runCommand(String command) throws IOException {
-        try {
-            // ProcessBuilder processBuilder = new ProcessBuilder(command);
-            // System.out.println("Command String: " + command);
+        boolean update;
+        do {
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
-            Boolean update = false;
-            long start = System.currentTimeMillis();
-            long end = start;
+            update = false;
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = null;
-            try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Downloading update")) {
                         update = true;
-                    } else {
-                        if (update) {
-                            System.out.println("Tunnel is updated. restarting...");
-                            runCommand(command);
-                        }
-                        try {
+                    } else if (update) {
+                        System.out.println("Tunnel is updated. restarting...");
+                        break; // Break the loop to restart the command
+                    }
+
+                    // Assuming t1 is defined and initialized somewhere else in your code
+                    try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
                                         new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
                                 if (br.readLine() != null) {
                                     tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
-                                    break;
+                                    return;
                                 }
                             }
                         } catch (Exception e) {
                             // System.out.println("Not found any file");
                         }
-                    }
-
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return;
+        } while (update); // If update is true, repeat the command execution
     }
 
+
     public void runCommandV2(String[] command) throws IOException {
-        try {
-            // ProcessBuilder processBuilder = new ProcessBuilder(command);
+        boolean update;
+        do {
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
-            Boolean update = false;
-            long start = System.currentTimeMillis();
-            long end = start;
+            update = false;
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = null;
-            try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Downloading update")) {
                         update = true;
-                    } else {
-                        if (update) {
-                            System.out.println("Tunnel is updated. restarting...");
-                            runCommandV2(command);
-                        }
-                        try {
+                    } else if (update) {
+                        System.out.println("Tunnel is updated. restarting...");
+                        break; // Break the loop to restart the command
+                    }
+
+                    // Assuming t1 is defined and initialized somewhere else in your code
+                     try {
                             if (t1.port != null) {
                                 BufferedReader br = new BufferedReader(
                                         new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
                                 if (br.readLine() != null) {
                                     tunnelFlag = true;
                                     System.out.println("Tunnel Started Successfully");
-                                    break;
+                                    return;
                                 }
                             }
                         } catch (Exception e) {
                             // System.out.println("Not found any file");
                         }
-                    }
-
-
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return;
+        } while (update);
     }
 }
