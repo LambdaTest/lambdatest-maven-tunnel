@@ -443,8 +443,9 @@ public class Tunnel {
             process = run.exec(command);
             update = false;
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
+                try{
 
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Downloading update")) {
@@ -484,8 +485,9 @@ public class Tunnel {
             process = run.exec(command);
             update = false;
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream())); 
                 String line;
+                try{
 
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Downloading update")) {
