@@ -29,7 +29,7 @@ public class Tunnel {
     private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath",
             "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey",
             "clientCert", "allowHosts", "verbose", "serverDomain", "usePrivateIp", "retry-proxy-error",
-            "retry-proxy-error-count");
+            "retry-proxy-error-count", "ntlm", "ntlmPassword", "ntlmUsername", "maxSSHConnections");
 
     private boolean tunnelFlag = false;
 
@@ -94,6 +94,10 @@ public class Tunnel {
         parameters.put("usePrivateIp", "--use-private-ip");
         parameters.put("retry-proxy-error", "--retry-proxy-error");
         parameters.put("retry-proxy-error-count", "--retry-proxy-error-count");
+        parameters.put("ntlm", "--ntlm");
+        parameters.put("ntlmUsername", "--ntlm-username");
+        parameters.put("ntlmPassword", "--ntlm-password");
+        parameters.put("maxSSHConnections", "--maxSSHConnections");
     }
 
     /**
@@ -310,6 +314,25 @@ public class Tunnel {
             command += options.get("retry-proxy-error-count");
         }
 
+        if (options.get("ntlm") != "" && options.get("ntlm") != null) {
+            command += " --ntlm ";
+        }
+
+        if (options.get("ntlmUsername") != "" && options.get("ntlmUsername") != null) {
+            command += " --ntlm-username ";
+            command += options.get("ntlmUsername");
+        }
+
+        if (options.get("ntlmPassword") != "" && options.get("ntlmPassword") != null) {
+            command += " --ntlm-password ";
+            command += options.get("ntlmPassword");
+        }
+
+        if (options.get("maxSSHConnections") != "" && options.get("maxSSHConnections") != null) {
+            command += " --maxSSHConnections ";
+            command += options.get("maxSSHConnections");
+        }
+
         if (t1.port != null) {
             command += " --callbackURL http://127.0.0.1:" + String.valueOf(t1.port);
         }
@@ -412,6 +435,25 @@ public class Tunnel {
         if (options.get("retry-proxy-error-count") != "" && options.get("retry-proxy-error-count") != null) {
             commandArray.add("--retry-proxy-error-count");
             commandArray.add(options.get("retry-proxy-error-count"));
+        }
+
+        if (options.get("ntlm") != "" && options.get("ntlm") != null) {
+            commandArray.add("--ntlm");
+        }
+
+        if (options.get("ntlmUsername") != "" && options.get("ntlmUsername") != null) {
+            commandArray.add("--ntlm-username");
+            commandArray.add(options.get("ntlmUsername"));
+        }
+
+        if (options.get("ntlmPassword") != "" && options.get("ntlmPassword") != null) {
+            commandArray.add("--ntlm-password");
+            commandArray.add(options.get("ntlmPassword"));
+        }
+
+        if (options.get("maxSSHConnections") != "" && options.get("maxSSHConnections") != null) {
+            commandArray.add("--maxSSHConnections");
+            commandArray.add(options.get("maxSSHConnections"));
         }
 
         if (t1.port != null) {
