@@ -71,7 +71,7 @@ class TunnelBinary {
 
             String arch = System.getProperty("os.arch");
 
-            if (arch.contains("arm64")) {
+            if (arch.contains("arm64") || arch.contains("aarch64")) {
                 binFileName = "mac/arm64/LT_Mac.zip";
                 downloadFileName = "/LT_Mac.zip";
             }else{
@@ -81,7 +81,7 @@ class TunnelBinary {
         } else if (osname.contains("linux")) {
 
             String arch = System.getProperty("os.arch");
-            if (arch.contains("arm64")) {
+            if (arch.contains("arm64") || arch.contains("aarch64")) {
                 binFileName = "linux/arm64/LT_Linux.zip";
                 downloadFileName = "/LT_Linux.zip";
             } else {
