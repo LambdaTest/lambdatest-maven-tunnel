@@ -66,16 +66,28 @@ class TunnelBinary {
         if (isOSWindows) {
             String arch = System.getProperty("os.arch");
             binFileName = "windows/" + (arch.contains("64") ? "64bit/LT_Windows.zip" : "32bit/LT_Windows.zip");
-            downloadFileName = (arch.contains("64") ? "/LT_Windows.zip" : "/LT_Windows.zip");
+            downloadFileName = "/LT_Windows.zip";
         } else if (osname.contains("mac") || osname.contains("darwin")) {
-            String arch = System.getProperty("os.arch");
-            binFileName = "mac/" + (arch.contains("64") ? "64bit/LT_Mac.zip" : "32bit/LT_Mac.zip");
-            downloadFileName = (arch.contains("64") ? "/LT_Mac.zip" : "/LT_Mac.zip");
-        } else if (osname.contains("linux")) {
-            String arch = System.getProperty("os.arch");
-            binFileName = "linux/" + (arch.contains("64") ? "64bit/LT_Linux.zip" : "32bit/LT_Linux.zip");
-            downloadFileName = (arch.contains("64") ? "/LT_Linux.zip" : "/LT_Linux.zip");
 
+            String arch = System.getProperty("os.arch");
+
+            if (arch.contains("arm64") || arch.contains("aarch64")) {
+                binFileName = "mac/arm64/LT_Mac.zip";
+                downloadFileName = "/LT_Mac.zip";
+            }else{
+                binFileName = "mac/" + (arch.contains("64") ? "64bit/LT_Mac.zip" : "32bit/LT_Mac.zip");
+                downloadFileName = "/LT_Mac.zip";
+            }
+        } else if (osname.contains("linux")) {
+
+            String arch = System.getProperty("os.arch");
+            if (arch.contains("arm64") || arch.contains("aarch64")) {
+                binFileName = "linux/arm64/LT_Linux.zip";
+                downloadFileName = "/LT_Linux.zip";
+            } else {
+                binFileName = "linux/" + (arch.contains("64") ? "64bit/LT_Linux.zip" : "32bit/LT_Linux.zip");
+                downloadFileName = "/LT_Linux.zip";
+            }
         } else {
             throw new TunnelException("Failed to detect OS type");
         }
