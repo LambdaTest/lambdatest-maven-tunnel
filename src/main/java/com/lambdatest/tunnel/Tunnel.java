@@ -1,22 +1,20 @@
 package com.lambdatest.tunnel;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.net.HttpURLConnection;
 import java.net.ServerSocket;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+
 import java.util.*;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import java.util.HashMap;
+import org.json.JSONObject;
+
 import com.lambdatest.httpserver.HttpServer;
 import com.lambdatest.tunnel.TestDaemonThread1;
 import com.lambdatest.KillPort;
@@ -37,7 +35,9 @@ public class Tunnel {
 
     private Map<String, String> parameters;
 
-    private String TunnelID;
+    private String tunnelID;
+    private String userName;
+    private String accessKey;
 
     private Integer tunnelCount = 0;
 
@@ -137,6 +137,9 @@ public class Tunnel {
                 System.out.println(e);
             }
 
+            this.userName = options.get("user");
+            this.accessKey = options.get("key");
+
             // Check if tunnel binary path contains spaces
             String tunnelBinaryPath = "";
             if (options.get("binary") != null) {
@@ -181,6 +184,14 @@ public class Tunnel {
             mutex.lock();
             stopTunnel();
             process.waitFor();
+
+            boolean hasTerminated = process.waitFor(30, TimeUnit.SECONDS);
+            if (!hasTerminated) {
+                System.err.println("The tunnel process did not terminate within timeout");
+                process.destroyForcibly(); // Forcefully kill the process if it doesn't stop
+            } else {
+                System.out.println("Tunnel process terminated successfully.");
+            }
             mutex.unlock();
         } catch (Exception e) {
             throw e;
@@ -202,30 +213,51 @@ public class Tunnel {
     }
 
     public void stopTunnel() throws TunnelException {
+
+        String filePath = ".lambdatest/tunnelprocs/" + t1.port + ".txt";
+        Path pathOfFile = Paths.get(filePath);
+
+        if (!Files.exists(pathOfFile)) {
+            System.out.println("File does not exist, cannot stop tunnel");
+            return; // Exit the method if the file does not exist
+        }
+
         try {
-            String deleteEndpoint = "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
-            CloseableHttpClient httpclient = HttpClients.createDefault();
 
+            setTunnelIdFromJson(filePath);
+
+            System.out.println("Tunnel ID: " + tunnelID);
+
+            String deleteEndpoint = "https://ts.lambdatest.com/v1.0/stop/" + tunnelID;
+            String auth =  userName + ":" + accessKey ; 
+            String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
+            httpDelete.setHeader("Authorization", encodedAuth); 
 
-            HttpResponse response = httpclient.execute(httpDelete);
-            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+            // Execute the HTTP DELETE request
+            CloseableHttpResponse response = httpClient.execute(httpDelete);
 
-            // Throw runtime exception if status code isn't 200
+            // Handle the response
             if (response.getStatusLine().getStatusCode() != 200) {
+                System.out.println("Response from server: " + response.getStatusLine());
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
-            Path pathOfFile = Paths.get(".lambdatest/tunnelprocs/" +t1.port + ".txt");
+
+            // Clean up: delete file and kill port process
             boolean result = Files.deleteIfExists(pathOfFile);
             if (result)
                 System.out.println("File is deleted");
             else
-                System.out.println("File does not exists");
+                System.out.println("File does not exist");
+
             KillPort killPort = new KillPort();
             killPort.killProcess(t1.port);
-            System.out.println("Tunnel closed successfully && Port process killed");
+            System.out.println("Tunnel closed successfully and port process killed");
+        }
         } catch (Exception e) {
-            throw new TunnelException("Tunnel with ID: " + TunnelID + " has been closed!");
+            throw new TunnelException("Tunnel with ID: " + tunnelID + " has been closed!");
         }
     }
 
@@ -568,5 +600,16 @@ public class Tunnel {
             e.printStackTrace();
         }
         return;
+    }
+
+    // function to get tunnel-id from process txt file
+    public void setTunnelIdFromJson(String filePath) throws IOException {
+        String content = new String(Files.readAllBytes(Paths.get(filePath)));
+    
+        JSONObject jsonObj = new JSONObject(content);
+        
+        // Extract the 'id' from JSON and convert it to String
+        this.tunnelID = Integer.toString(jsonObj.getJSONObject("data").getInt("id"));
+    
     }
 }
