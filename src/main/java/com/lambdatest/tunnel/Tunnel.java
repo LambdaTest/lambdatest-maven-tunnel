@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -183,7 +184,6 @@ public class Tunnel {
         try {
             mutex.lock();
             stopTunnel();
-            process.waitFor();
 
             boolean hasTerminated = process.waitFor(30, TimeUnit.SECONDS);
             if (!hasTerminated) {
@@ -211,55 +211,82 @@ public class Tunnel {
         pwOb.close();
         fwOb.close();
     }
-
+   
     public void stopTunnel() throws TunnelException {
 
         String filePath = ".lambdatest/tunnelprocs/" + t1.port + ".txt";
         Path pathOfFile = Paths.get(filePath);
-
+  
         if (!Files.exists(pathOfFile)) {
-            System.out.println("File does not exist, cannot stop tunnel");
-            return; // Exit the method if the file does not exist
+          System.out.println("File does not exist, cannot stop tunnel");
+          return; // Exit the method if the file does not exist
         }
-
         try {
-
-            setTunnelIdFromJson(filePath);
-
-            System.out.println("Tunnel ID: " + tunnelID);
-
-            String deleteEndpoint = "https://ts.lambdatest.com/v1.0/stop/" + tunnelID;
-            String auth =  userName + ":" + accessKey ; 
-            String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-
-            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
-            httpDelete.setHeader("Authorization", encodedAuth); 
-
-            // Execute the HTTP DELETE request
-            CloseableHttpResponse response = httpClient.execute(httpDelete);
-
-            // Handle the response
+  
+          setTunnelIdFromJson(filePath);
+          boolean stopTunnelAPI = Boolean.parseBoolean(System.getenv("STOP_TUNNEL_API"));
+  
+          String deleteEndpoint = stopTunnelAPI ?
+            "https://ts.lambdatest.com/v1.0/stop/1" + tunnelID :
+            "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
+  
+          HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
+  
+          if (!stopTunnelAPI) {
+  
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpResponse response = httpclient.execute(httpDelete);
+            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+  
+            // Throw runtime exception if status code isn't 200
             if (response.getStatusLine().getStatusCode() != 200) {
-                System.out.println("Response from server: " + response.getStatusLine());
-                throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+              throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
-
-            // Clean up: delete file and kill port process
-            boolean result = Files.deleteIfExists(pathOfFile);
-            if (result)
-                System.out.println("File is deleted");
-            else
-                System.out.println("File does not exist");
-
-            KillPort killPort = new KillPort();
-            killPort.killProcess(t1.port);
-            System.out.println("Tunnel closed successfully and port process killed");
-        }
+  
+          } else {
+  
+            String auth = userName + ":" + accessKey;
+            String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+  
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+  
+              httpDelete.setHeader("Authorization", encodedAuth);
+  
+              int attempt = 0;
+              CloseableHttpResponse response = null;
+              while (attempt < 3) {
+                response = httpClient.execute(httpDelete);
+                if (response.getStatusLine().getStatusCode() == 200) {
+                  System.out.println("Tunnel stopped successfully");
+                  break;
+                } else {
+                  System.out.println("Attempt " + (attempt + 1) + " failed with HTTP error code : " + response.getStatusLine().getStatusCode());
+                  attempt++;
+                  if (response != null) response.close();
+  
+                  if (attempt == 3) {
+                    System.out.println("Max retries reached, could not stop tunnel");
+                    throw new TunnelException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+                  } else {
+                    Thread.sleep(3000);
+                  }
+                }
+              }
+            }
+          }
+  
+          boolean result = Files.deleteIfExists(pathOfFile);
+          if (result)
+            System.out.println("File is deleted");
+          else
+            System.out.println("File does not exists");
+          KillPort killPort = new KillPort();
+          killPort.killProcess(t1.port);
+          System.out.println("Tunnel closed successfully && Port process killed");
         } catch (Exception e) {
-            throw new TunnelException("Tunnel with ID: " + tunnelID + " has been closed!");
+          throw new TunnelException("Tunnel with ID: " + tunnelID + " has been closed!");
         }
-    }
+      }
 
     // Give parameters to the tunnel for starting it in runCommand.
     public String passParametersToTunnel(Map<String, String> options) {
