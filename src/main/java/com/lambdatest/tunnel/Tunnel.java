@@ -244,7 +244,6 @@ public class Tunnel {
             }
   
           } else {
-            System.out.println("Stopping tunnel using tunnel Server API");
   
             String auth = userName + ":" + accessKey;
             String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
@@ -261,7 +260,6 @@ public class Tunnel {
                   System.out.println("Tunnel stopped successfully");
                   break;
                 } else {
-                  System.out.println("Attempt " + (attempt + 1) + " failed with HTTP error code : " + response.getStatusLine().getStatusCode());
                   attempt++;
                   if (response != null) response.close();
   
