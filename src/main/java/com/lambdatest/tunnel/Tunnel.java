@@ -227,7 +227,7 @@ public class Tunnel {
           boolean stopTunnelAPI = Boolean.parseBoolean(System.getenv("STOP_TUNNEL_API"));
   
           String deleteEndpoint = stopTunnelAPI ?
-            "https://ts.lambdatest.com/v1.0/stop/1" + tunnelID :
+            "https://ts.lambdatest.com/v1.0/stop/" + tunnelID :
             "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
   
           HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
@@ -244,6 +244,7 @@ public class Tunnel {
             }
   
           } else {
+            System.out.println("Stopping tunnel using tunnel Server API");
   
             String auth = userName + ":" + accessKey;
             String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
