@@ -38,8 +38,8 @@ public class LambdaTestTunnelTest {
 		//create tunnel instance
 		t = new Tunnel();
 		HashMap<String, String> options = new HashMap<String, String>();
-		options.put("user", "akshayglambdatest");
-		options.put("key", "vfHfpCuKzeGVhzjgVrxb6hOns4WLeshy79CIrp0TcjOtamcRJi");
+		options.put("user", username);
+		options.put("key", access_key);
 
 		//start tunnel
 		t.start(options);
