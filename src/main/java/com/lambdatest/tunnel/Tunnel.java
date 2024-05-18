@@ -600,7 +600,7 @@ public class Tunnel {
                     System.out.println("Tunnel Status Response: " + execute.getStatusLine().getStatusCode());
                 }
             } catch (Exception e) {
-                System.out.println("Tunnel not yet started. Will retry in 5 seconds");
+                System.out.println("Tunnel not yet started. Retrying");
             }
         }
     }
