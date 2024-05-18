@@ -18,8 +18,8 @@ public class LambdaTestTunnelTest {
 	WebDriver driver = null;
 	public static String status = "passed";
 
-	String username = "akshayglambdatest";
-	String access_key = "vfHfpCuKzeGVhzjgVrxb6hOns4WLeshy79CIrp0TcjOtamcRJi";
+	String username = System.getenv("LT_USERNAME");
+	String access_key = System.getenv("LT_ACCESS_KEY");
 
 	@BeforeTest
 	public void setUp() throws Exception {
