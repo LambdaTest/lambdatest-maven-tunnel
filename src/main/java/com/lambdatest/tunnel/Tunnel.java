@@ -33,6 +33,7 @@ public class Tunnel {
 
     private boolean tunnelFlag = false;
     private final int MAX_TUNNEL_STARTUP_RETRY_COUNT = 20;
+    private final int TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF = 3000;
     private int infoAPIPortValue;
     private int tunnelID;
 
@@ -569,7 +570,7 @@ public class Tunnel {
 
         for (int retryCount = 0; retryCount < MAX_TUNNEL_STARTUP_RETRY_COUNT; retryCount++) {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF);
                 System.out.println("Checking Tunnel Status");
                 String infoAPIGetEndpoint = "http://127.0.0.1:" + Integer.toString(infoAPIPortValue) + "/api/v1.0/info";
                 HttpGet httpGet = new HttpGet(infoAPIGetEndpoint);
