@@ -34,6 +34,7 @@ public class Tunnel {
     private boolean tunnelFlag = false;
     private final int MAX_TUNNEL_STARTUP_RETRY_COUNT = 20;
     private final int TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF = 3000;
+    private final int HTTP_TIMEOUT = 5000;
     private int infoAPIPortValue;
     private int tunnelID;
 
@@ -562,9 +563,9 @@ public class Tunnel {
 
     private void waitForTunnelToStart() throws IOException {
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(5000)
-                .setSocketTimeout(5000)
-                .setConnectionRequestTimeout(5000)
+                .setConnectTimeout(HTTP_TIMEOUT)
+                .setSocketTimeout(HTTP_TIMEOUT)
+                .setConnectionRequestTimeout(HTTP_TIMEOUT)
                 .build();
         CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 
