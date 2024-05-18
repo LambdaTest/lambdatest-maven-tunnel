@@ -4,6 +4,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -17,8 +18,8 @@ public class LambdaTestTunnelTest {
 	WebDriver driver = null;
 	public static String status = "passed";
 
-	String username = System.getenv("LT_USERNAME");
-	String access_key = System.getenv("LT_ACCESS_KEY");
+	String username = "akshayglambdatest";
+	String access_key = "vfHfpCuKzeGVhzjgVrxb6hOns4WLeshy79CIrp0TcjOtamcRJi";
 
 	@BeforeTest
 	public void setUp() throws Exception {
@@ -37,12 +38,12 @@ public class LambdaTestTunnelTest {
 		//create tunnel instance
 		t = new Tunnel();
 		HashMap<String, String> options = new HashMap<String, String>();
-		options.put("user", username);
-		options.put("key", access_key);
+		options.put("user", "akshayglambdatest");
+		options.put("key", "vfHfpCuKzeGVhzjgVrxb6hOns4WLeshy79CIrp0TcjOtamcRJi");
 
 		//start tunnel
 		t.start(options);
-		driver = new RemoteWebDriver(new URL("http://" + username + ":" + access_key + "@hub.lambdatest.com/wd/hub"), capabilities);
+		driver = new RemoteWebDriver(new URL("https://" + username + ":" + access_key + "@hub.lambdatest.com/wd/hub"), capabilities);
 		System.out.println("Started session");
 	}
 
@@ -56,9 +57,11 @@ public class LambdaTestTunnelTest {
 
 	@AfterTest
 	public void tearDown() throws Exception {
-		((JavascriptExecutor) driver).executeScript("lambda-status=" + status);
-		driver.quit();
-		//close tunnel
+			((JavascriptExecutor) driver).executeScript("lambda-status=" + status);
+			driver.quit();
+	}
+	@AfterSuite
+	public void setTearDown() throws Exception {
 		t.stop();
 	}
 }

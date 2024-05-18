@@ -67,11 +67,16 @@ public class HttpServer{
                     myWriter.write(body.toString());
                     myWriter.close();
                 }
+                // write 200 OK response
+                String response = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n" + "Content-Length: 0\r\n" + "\r\n";
+                OutputStream os = clientSocket.getOutputStream();
+                os.write(response.getBytes());
                 break;
             } catch (IOException e) {
                 System.out.println("An error occurred.");
                 e.printStackTrace();
             }
         }
+
     }
 }
