@@ -217,7 +217,6 @@ public class Tunnel {
     }
 
     public void stopTunnel() throws TunnelException {
-
         try {
             boolean stopTunnelAPI = Boolean.parseBoolean(System.getenv("STOP_TUNNEL_API"));
 
@@ -226,18 +225,15 @@ public class Tunnel {
                     "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
 
             HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
-
             if (!stopTunnelAPI) {
-
-                CloseableHttpClient httpclient = HttpClients.createDefault();
-                HttpResponse response = httpclient.execute(httpDelete);
-                BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-
-                // Throw runtime exception if status code isn't 200
-                if (response.getStatusLine().getStatusCode() != 200) {
-                    throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+                try(CloseableHttpClient httpclient = HttpClients.createDefault()){
+                    HttpResponse response = httpclient.execute(httpDelete);
+                    BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+                    // Throw runtime exception if status code isn't 200
+                    if (response.getStatusLine().getStatusCode() != 200) {
+                        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+                    }
                 }
-
             } else {
 
                 String auth = userName + ":" + accessKey;
@@ -568,40 +564,41 @@ public class Tunnel {
                 .setSocketTimeout(HTTP_TIMEOUT)
                 .setConnectionRequestTimeout(HTTP_TIMEOUT)
                 .build();
-        CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-
-        for (int retryCount = 0; retryCount < MAX_TUNNEL_STARTUP_RETRY_COUNT; retryCount++) {
-            try {
-                Thread.sleep(TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF);
-                System.out.println("Checking Tunnel Status");
-                String infoAPIGetEndpoint = "http://127.0.0.1:" + Integer.toString(infoAPIPortValue) + TUNNEL_INFO_API;
-                HttpGet httpGet = new HttpGet(infoAPIGetEndpoint);
-                CloseableHttpResponse execute = httpClient.execute(httpGet);
-                if (execute.getStatusLine().getStatusCode() == 200) {
-                    System.out.println("Received Tunnel Status Response");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    JSONObject tunnelInfo = new JSONObject(response.toString());
-                    if (tunnelInfo.getString("status").equals("SUCCESS")) {
-                        tunnelFlag = true;
-                        System.out.println("Tunnel Started Successfully");
-                        if (tunnelInfo.getJSONObject("data") != null && tunnelInfo.getJSONObject("data").has("id")) {
-                            tunnelID = tunnelInfo.getJSONObject("data").getInt("id");
+        try(CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()){
+            for (int retryCount = 0; retryCount < MAX_TUNNEL_STARTUP_RETRY_COUNT; retryCount++) {
+                try {
+                    Thread.sleep(TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF);
+                    System.out.println("Checking Tunnel Status");
+                    String infoAPIGetEndpoint = "http://127.0.0.1:" + Integer.toString(infoAPIPortValue) + TUNNEL_INFO_API;
+                    HttpGet httpGet = new HttpGet(infoAPIGetEndpoint);
+                    try(CloseableHttpResponse execute = httpClient.execute(httpGet)){
+                        if (execute.getStatusLine().getStatusCode() == 200) {
+                            System.out.println("Received Tunnel Status Response");
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent()));
+                            StringBuilder response = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                response.append(line);
+                            }
+                            JSONObject tunnelInfo = new JSONObject(response.toString());
+                            if (tunnelInfo.getString("status").equals("SUCCESS")) {
+                                tunnelFlag = true;
+                                System.out.println("Tunnel Started Successfully");
+                                if (tunnelInfo.getJSONObject("data") != null && tunnelInfo.getJSONObject("data").has("id")) {
+                                    tunnelID = tunnelInfo.getJSONObject("data").getInt("id");
+                                }
+                                System.out.println("Tunnel ID: " + tunnelID);
+                                break;
+                            } else {
+                                System.out.println("Tunnel Status: " + tunnelInfo.getString("status"));
+                            }
+                        } else {
+                            System.out.println("Tunnel Status Response: " + execute.getStatusLine().getStatusCode());
                         }
-                        System.out.println("Tunnel ID: " + tunnelID);
-                        break;
-                    } else {
-                        System.out.println("Tunnel Status: " + tunnelInfo.getString("status"));
                     }
-                } else {
-                    System.out.println("Tunnel Status Response: " + execute.getStatusLine().getStatusCode());
+                } catch (Exception e) {
+                    System.out.println("Tunnel not yet started. Retrying");
                 }
-            } catch (Exception e) {
-                System.out.println("Tunnel not yet started. Retrying");
             }
         }
     }
