@@ -5,7 +5,7 @@
 	<groupId>com.github.lambdatest</groupId>
 	<artifactId>lambdatest-tunnel-binary</artifactId>
 	<packaging>jar</packaging>
-	<version>3.0.0-beta</version>
+	<version>4.0.0</version>
 	<name>lambdatest-maven-tunnel</name>
 	<description>LambdaTest tunnel binary in Java</description>
 	<url>https://www.lambdatest.com</url>

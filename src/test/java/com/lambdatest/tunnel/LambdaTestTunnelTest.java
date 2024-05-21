@@ -4,6 +4,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -42,7 +43,7 @@ public class LambdaTestTunnelTest {
 
 		//start tunnel
 		t.start(options);
-		driver = new RemoteWebDriver(new URL("http://" + username + ":" + access_key + "@hub.lambdatest.com/wd/hub"), capabilities);
+		driver = new RemoteWebDriver(new URL("https://" + username + ":" + access_key + "@hub.lambdatest.com/wd/hub"), capabilities);
 		System.out.println("Started session");
 	}
 
@@ -56,9 +57,11 @@ public class LambdaTestTunnelTest {
 
 	@AfterTest
 	public void tearDown() throws Exception {
-		((JavascriptExecutor) driver).executeScript("lambda-status=" + status);
-		driver.quit();
-		//close tunnel
+			((JavascriptExecutor) driver).executeScript("lambda-status=" + status);
+			driver.quit();
+	}
+	@AfterSuite
+	public void setTearDown() throws Exception {
 		t.stop();
 	}
 }

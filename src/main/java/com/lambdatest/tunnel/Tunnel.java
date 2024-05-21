@@ -10,14 +10,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
-import com.lambdatest.httpserver.HttpServer;
-import com.lambdatest.tunnel.TestDaemonThread1;
 import com.lambdatest.KillPort;
 
 /**
@@ -31,12 +32,15 @@ public class Tunnel {
             "retry-proxy-error-count", "ntlm", "ntlmPassword", "ntlmUsername", "maxSSHConnections");
 
     private boolean tunnelFlag = false;
-
+    private final int MAX_TUNNEL_STARTUP_RETRY_COUNT = 20;
+    private final int TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF = 3000;
+    private final int HTTP_TIMEOUT = 5000;
+    private final String TUNNEL_INFO_API = "/api/v1.0/info";
     private int infoAPIPortValue;
+    private int tunnelID;
 
     private Map<String, String> parameters;
 
-    private String tunnelID;
     private String userName;
     private String accessKey;
 
@@ -121,7 +125,7 @@ public class Tunnel {
             t1.setDaemon(true);// now t1 is daemon thread
             t1.start();// starting threads
             clearTheFile();
-            verifyTunnelStarted(options, infoAPIPortValue);
+            verifyTunnelCredentials(options);
 
             System.out.println("tunnel Verified");
             if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
@@ -169,7 +173,7 @@ public class Tunnel {
         }
     }
 
-    public void verifyTunnelStarted(Map<String, String> options, int infoAPIPortValue) throws TunnelException {
+    public void verifyTunnelCredentials(Map<String, String> options) throws TunnelException {
         if (options.get("user") == null || options.get("user") == "" || options.get("key") == null
                 || options.get("key") == "") {
             tunnelFlag = false;
@@ -211,81 +215,74 @@ public class Tunnel {
         pwOb.close();
         fwOb.close();
     }
-   
-    public void stopTunnel() throws TunnelException {
 
-        String filePath = ".lambdatest/tunnelprocs/" + t1.port + ".txt";
-        Path pathOfFile = Paths.get(filePath);
-  
-        if (!Files.exists(pathOfFile)) {
-          System.out.println("File does not exist, cannot stop tunnel");
-          return; // Exit the method if the file does not exist
-        }
+    public void stopTunnel() throws TunnelException {
         try {
-  
-          setTunnelIdFromJson(filePath);
-          boolean stopTunnelAPI = Boolean.parseBoolean(System.getenv("STOP_TUNNEL_API"));
-  
-          String deleteEndpoint = stopTunnelAPI ?
-            "https://ts.lambdatest.com/v1.0/stop/" + tunnelID :
-            "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
-  
-          HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
-  
-          if (!stopTunnelAPI) {
-  
-            CloseableHttpClient httpclient = HttpClients.createDefault();
-            HttpResponse response = httpclient.execute(httpDelete);
-            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-  
-            // Throw runtime exception if status code isn't 200
-            if (response.getStatusLine().getStatusCode() != 200) {
-              throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
-            }
-  
-          } else {
-  
-            String auth = userName + ":" + accessKey;
-            String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-  
-            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-  
-              httpDelete.setHeader("Authorization", encodedAuth);
-  
-              int attempt = 0;
-              CloseableHttpResponse response = null;
-              while (attempt < 3) {
-                response = httpClient.execute(httpDelete);
-                if (response.getStatusLine().getStatusCode() == 200) {
-                  System.out.println("Tunnel stopped successfully");
-                  break;
-                } else {
-                  attempt++;
-                  if (response != null) response.close();
-  
-                  if (attempt == 3) {
-                    System.out.println("Max retries reached, could not stop tunnel");
-                    throw new TunnelException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
-                  } else {
-                    Thread.sleep(3000);
-                  }
+            boolean stopTunnelAPI = Boolean.parseBoolean(System.getenv("STOP_TUNNEL_API"));
+
+            String deleteEndpoint = stopTunnelAPI ?
+                    "https://ts.lambdatest.com/v1.0/stop/" + tunnelID :
+                    "http://127.0.0.1:" + String.valueOf(infoAPIPortValue) + "/api/v1.0/stop";
+
+            HttpDelete httpDelete = new HttpDelete(deleteEndpoint);
+            if (!stopTunnelAPI) {
+                try(CloseableHttpClient httpclient = HttpClients.createDefault()){
+                    HttpResponse response = httpclient.execute(httpDelete);
+                    BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+                    // Throw runtime exception if status code isn't 200
+                    if (response.getStatusLine().getStatusCode() != 200) {
+                        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+                    }
                 }
-              }
+            } else {
+
+                String auth = userName + ":" + accessKey;
+                String encodedAuth = "Basic " + Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+
+                try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+
+                    httpDelete.setHeader("Authorization", encodedAuth);
+
+                    int attempt = 0;
+                    CloseableHttpResponse response = null;
+                    while (attempt < 3) {
+                        response = httpClient.execute(httpDelete);
+                        if (response.getStatusLine().getStatusCode() == 200) {
+                            System.out.println("Tunnel stopped successfully");
+                            break;
+                        } else {
+                            attempt++;
+                            if (response != null) response.close();
+
+                            if (attempt == 3) {
+                                System.out.println("Max retries reached, could not stop tunnel");
+                                throw new TunnelException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+                            } else {
+                                Thread.sleep(3000);
+                            }
+                        }
+                    }
+                }
             }
-          }
-  
-          boolean result = Files.deleteIfExists(pathOfFile);
-          if (result)
-            System.out.println("File is deleted");
-          else
-            System.out.println("File does not exists");
-          KillPort killPort = new KillPort();
-          killPort.killProcess(t1.port);
-          System.out.println("Tunnel closed successfully && Port process killed");
+            String filePath = ".lambdatest/tunnelprocs/" + t1.port + ".txt";
+            Path pathOfFile = Paths.get(filePath);
+
+            if (!Files.exists(pathOfFile)) {
+                System.out.println("File does not exist, cannot stop tunnel");
+                return; // Exit the method if the file does not exist
+            }
+            boolean result = Files.deleteIfExists(pathOfFile);
+            if (result)
+                System.out.println("File is deleted");
+            else
+                System.out.println("File does not exists");
+            KillPort killPort = new KillPort();
+            killPort.killProcess(t1.port);
+            System.out.println("Tunnel closed successfully && Port process killed");
         } catch (Exception e) {
-          throw new TunnelException("Tunnel with ID: " + tunnelID + " has been closed!");
+            throw new TunnelException("Tunnel with ID: " + tunnelID + " has been closed!");
         }
-      }
+    }
 
     // Give parameters to the tunnel for starting it in runCommand.
     public String passParametersToTunnel(Map<String, String> options) {
@@ -538,44 +535,12 @@ public class Tunnel {
 
     public void runCommand(String command) throws IOException {
         try {
-            // ProcessBuilder processBuilder = new ProcessBuilder(command);
-            // System.out.println("Command String: " + command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
             long start = System.currentTimeMillis();
             long end = start;
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = null;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Downloading update")) {
-                        update = true;
-                    } else {
-                        if (update) {
-                            System.out.println("Tunnel is updated. restarting...");
-                            runCommand(command);
-                        }
-                        try {
-                            if (t1.port != null) {
-                                BufferedReader br = new BufferedReader(
-                                        new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
-                                if (br.readLine() != null) {
-                                    tunnelFlag = true;
-                                    System.out.println("Tunnel Started Successfully");
-                                    break;
-                                }
-                            }
-                        } catch (Exception e) {
-                            // System.out.println("Not found any file");
-                        }
-                    }
-
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            waitForTunnelToStart();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -584,58 +549,57 @@ public class Tunnel {
 
     public void runCommandV2(String[] command) throws IOException {
         try {
-            // ProcessBuilder processBuilder = new ProcessBuilder(command);
             Runtime run = Runtime.getRuntime();
             process = run.exec(command);
             Boolean update = false;
-            long start = System.currentTimeMillis();
-            long end = start;
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = null;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    if (line.contains("Downloading update")) {
-                        update = true;
-                    } else {
-                        if (update) {
-                            System.out.println("Tunnel is updated. restarting...");
-                            runCommandV2(command);
-                        }
-                        try {
-                            if (t1.port != null) {
-                                BufferedReader br = new BufferedReader(
-                                        new FileReader(String.valueOf(".lambdatest/tunnelprocs/" + t1.port) + ".txt"));
-                                if (br.readLine() != null) {
-                                    tunnelFlag = true;
-                                    System.out.println("Tunnel Started Successfully");
-                                    break;
-                                }
-                            }
-                        } catch (Exception e) {
-                            // System.out.println("Not found any file");
-                        }
-                    }
-
-
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            waitForTunnelToStart();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return;
     }
 
-    // function to get tunnel-id from process txt file
-    public void setTunnelIdFromJson(String filePath) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(filePath)));
-    
-        JSONObject jsonObj = new JSONObject(content);
-        
-        // Extract the 'id' from JSON and convert it to String
-        this.tunnelID = Integer.toString(jsonObj.getJSONObject("data").getInt("id"));
-    
+    private void waitForTunnelToStart() throws IOException {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(HTTP_TIMEOUT)
+                .setSocketTimeout(HTTP_TIMEOUT)
+                .setConnectionRequestTimeout(HTTP_TIMEOUT)
+                .build();
+        try(CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()){
+            for (int retryCount = 0; retryCount < MAX_TUNNEL_STARTUP_RETRY_COUNT; retryCount++) {
+                try {
+                    Thread.sleep(TUNNEL_INITIAL_WAIT_AND_RETRY_BACKOFF);
+                    System.out.println("Checking Tunnel Status");
+                    String infoAPIGetEndpoint = "http://127.0.0.1:" + Integer.toString(infoAPIPortValue) + TUNNEL_INFO_API;
+                    HttpGet httpGet = new HttpGet(infoAPIGetEndpoint);
+                    try(CloseableHttpResponse execute = httpClient.execute(httpGet)){
+                        if (execute.getStatusLine().getStatusCode() == 200) {
+                            System.out.println("Received Tunnel Status Response");
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(execute.getEntity().getContent()));
+                            StringBuilder response = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                response.append(line);
+                            }
+                            JSONObject tunnelInfo = new JSONObject(response.toString());
+                            if (tunnelInfo.getString("status").equals("SUCCESS")) {
+                                tunnelFlag = true;
+                                System.out.println("Tunnel Started Successfully");
+                                if (tunnelInfo.getJSONObject("data") != null && tunnelInfo.getJSONObject("data").has("id")) {
+                                    tunnelID = tunnelInfo.getJSONObject("data").getInt("id");
+                                }
+                                System.out.println("Tunnel ID: " + tunnelID);
+                                break;
+                            } else {
+                                System.out.println("Tunnel Status: " + tunnelInfo.getString("status"));
+                            }
+                        } else {
+                            System.out.println("Tunnel Status Response: " + execute.getStatusLine().getStatusCode());
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Tunnel not yet started. Retrying");
+                }
+            }
+        }
     }
 }
