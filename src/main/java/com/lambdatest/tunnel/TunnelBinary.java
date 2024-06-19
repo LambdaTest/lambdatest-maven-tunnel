@@ -120,27 +120,26 @@ class TunnelBinary {
                 e.printStackTrace();
             }
             unzip(destParentDir+downloadFileName, destParentDir);
-
         }
 
         try {
+            Thread.sleep(2000);
             changePermissions(binaryPath);
+            Thread.sleep(2000);
             ProcessBuilder pb = new ProcessBuilder(binaryPath,"--version");
             process = pb.start();
             BufferedReader stdoutbr = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String stdout="",line="";
-
+            
+            String stdout = "", line = "";
             while ((line = stdoutbr.readLine()) != null) {
                 stdout += line;
             }
             process.waitFor();
             return true;
-
-        }catch(IOException ex){
+    
+        } catch(IOException ex){
             throw new TunnelException(ex.toString());
-        }
-        catch(InterruptedException ex){
+        } catch(InterruptedException ex){
             throw new TunnelException(ex.toString());
         }
     }
@@ -172,6 +171,7 @@ class TunnelBinary {
             
             ZipFile zipFile = new ZipFile(source);
             zipFile.extractAll(destination);
+            zipFile.close();
         } catch (ZipException e) {
             e.printStackTrace();
         } catch (IOException e) {
