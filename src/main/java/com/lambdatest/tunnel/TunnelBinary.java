@@ -108,7 +108,7 @@ class TunnelBinary {
         }
     }
 
-    private boolean validateBinary(String binaryPathFromUser) throws TunnelException{
+    private boolean validateBinary(String binaryPathFromUser) throws TunnelException {
         Process process;
         String url = httpPath;
         if (binaryPathFromUser == null){
@@ -120,29 +120,39 @@ class TunnelBinary {
                 e.printStackTrace();
             }
             unzip(destParentDir+downloadFileName, destParentDir);
-
+    
         }
-
-        try {
-            changePermissions(binaryPath);
-            ProcessBuilder pb = new ProcessBuilder(binaryPath,"--version");
-            process = pb.start();
-            BufferedReader stdoutbr = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String stdout="",line="";
-
-            while ((line = stdoutbr.readLine()) != null) {
-                stdout += line;
+    
+        int attempts = 5;
+        while (attempts-- > 0) {
+            try {
+                changePermissions(binaryPath);
+                ProcessBuilder pb = new ProcessBuilder(binaryPath, "--version");
+                process = pb.start();
+                BufferedReader stdoutbr = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    
+                String stdout = "", line = "";
+    
+                while ((line = stdoutbr.readLine()) != null) {
+                    stdout += line;
+                }
+                process.waitFor();
+                return true;
+    
+            } catch (IOException ex) {
+                try {
+                    Thread.sleep(2000);  
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt(); // Restore interrupted state
+                    throw new TunnelException("Interrupted while waiting for binary to execute: " + ie.getMessage());
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt(); // Restore interrupted state
+                throw new TunnelException("Interrupted while waiting for binary to execute: " + ex.getMessage());
             }
-            process.waitFor();
-            return true;
-
-        }catch(IOException ex){
-            throw new TunnelException(ex.toString());
         }
-        catch(InterruptedException ex){
-            throw new TunnelException(ex.toString());
-        }
+    
+        throw new TunnelException("Failed to execute binary after multiple attempts.");
     }
 
     public static Boolean isZip(String destination) throws IOException {
@@ -172,6 +182,7 @@ class TunnelBinary {
             
             ZipFile zipFile = new ZipFile(source);
             zipFile.extractAll(destination);
+            zipFile.close();
         } catch (ZipException e) {
             e.printStackTrace();
         } catch (IOException e) {
