@@ -168,7 +168,7 @@ public class Tunnel {
                 e.printStackTrace();
                 retryCount++;
                 if (retryCount == 3) {
-                    System.err.println("Max retries reached, could not start tunnel");
+                    System.out.println("Max retries reached, could not start tunnel");
                     return false;
                 }
             }
