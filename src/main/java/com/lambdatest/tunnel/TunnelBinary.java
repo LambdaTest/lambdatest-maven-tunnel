@@ -125,7 +125,7 @@ class TunnelBinary {
         try {
             Thread.sleep(2000);
             changePermissions(binaryPath);
-            Thread.sleep(2000);
+            Thread.sleep(5000);
             ProcessBuilder pb = new ProcessBuilder(binaryPath,"--version");
             process = pb.start();
             BufferedReader stdoutbr = new BufferedReader(new InputStreamReader(process.getInputStream()));
