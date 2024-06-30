@@ -111,66 +111,69 @@ public class Tunnel {
      * @param options Options for the Tunnel instance
      */
     public synchronized Boolean start(Map<String, String> options) {
-
-        try {
-
-            tunnelBinary = new TunnelBinary(options.get("binary"));
-            // Get path of downloaded tunnel in project directory
-            mutex.lock();
-            if (options.containsKey("infoAPIPort") && options.get("infoAPIPort").matches("^[0-9]+"))
-                infoAPIPortValue = Integer.parseInt(options.get("infoAPIPort"));
-            else
-                infoAPIPortValue = findAvailablePort();
-
-            t1.setDaemon(true);// now t1 is daemon thread
-            t1.start();// starting threads
-            clearTheFile();
-            verifyTunnelCredentials(options);
-
-            System.out.println("tunnel Verified");
-            if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
-                if (options.get("tunnelName") == "" || options.get("tunnelName") == null) {
-                    options.put("tunnelName", "Maven_Tunnel_LambdaTest_" + options.get("key"));
-                }
-            }
-
+        int retryCount = 0;
+        while (retryCount < 3) {
             try {
-                for (int i = 0; i < 5; i++) {
-                    Thread.sleep(1000);
+                tunnelBinary = new TunnelBinary(options.get("binary"));
+                // Get path of downloaded tunnel in project directory
+                mutex.lock();
+                if (options.containsKey("infoAPIPort") && options.get("infoAPIPort").matches("^[0-9]+"))
+                    infoAPIPortValue = Integer.parseInt(options.get("infoAPIPort"));
+                else
+                    infoAPIPortValue = findAvailablePort();
+    
+                t1.setDaemon(true); // now t1 is daemon thread
+                t1.start(); // starting threads
+                clearTheFile();
+                verifyTunnelCredentials(options);
+    
+                System.out.println("Tunnel Verified");
+                if (options.get("load-balanced") != "" && options.get("load-balanced") != null) {
+                    if (options.get("tunnelName") == "" || options.get("tunnelName") == null) {
+                        options.put("tunnelName", "Maven_Tunnel_LambdaTest_" + options.get("key"));
+                    }
                 }
+    
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        Thread.sleep(1000);
+                    }
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+    
+                this.userName = options.get("user");
+                this.accessKey = options.get("key");
+    
+                // Check if tunnel binary path contains spaces
+                String tunnelBinaryPath = "";
+                if (options.get("binary") != null) {
+                    tunnelBinaryPath += options.get("binary");
+                } else {
+                    String path = tunnelBinary.getBinaryPath();
+                    tunnelBinaryPath += path;
+                }
+                boolean isWhiteSpaceInBinaryPath = tunnelBinaryPath.contains(" ");
+                if (isWhiteSpaceInBinaryPath) {
+                    String[] command = passParametersToTunnelV2(options);
+                    runCommandV2(command);
+                } else {
+                    String command = passParametersToTunnel(options);
+                    runCommand(command);
+                }
+    
+                mutex.unlock();
+                return true;
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
+                retryCount++;
+                if (retryCount == 3) {
+                    System.out.println("Max retries reached, could not start tunnel");
+                    return false;
+                }
             }
-
-            this.userName = options.get("user");
-            this.accessKey = options.get("key");
-
-            // Check if tunnel binary path contains spaces
-            String tunnelBinaryPath = "";
-            if (options.get("binary") != null) {
-                tunnelBinaryPath += options.get("binary");
-            } else {
-                String path = tunnelBinary.getBinaryPath();
-                tunnelBinaryPath += path;
-            }
-            boolean isWhiteSpaceInBinaryPath = tunnelBinaryPath.contains(" ");
-            if (isWhiteSpaceInBinaryPath) {
-                String[] command = passParametersToTunnelV2(options);
-                runCommandV2(command);
-
-            } else {
-
-                String command = passParametersToTunnel(options);
-                runCommand(command);
-
-            }
-
-            mutex.unlock();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
     public void verifyTunnelCredentials(Map<String, String> options) throws TunnelException {
