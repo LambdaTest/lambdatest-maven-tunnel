@@ -388,6 +388,11 @@ public class Tunnel {
             command += options.get("maxSSHConnections");
         }
 
+        if(options.get("logLevel") != "" && options.get("logLevel") != null) {
+            command += " --log-level ";
+            command += options.get("logLevel");
+        }
+
         if (t1.port != null) {
             command += " --callbackURL http://127.0.0.1:" + String.valueOf(t1.port);
         }
@@ -509,6 +514,11 @@ public class Tunnel {
         if (options.get("maxSSHConnections") != "" && options.get("maxSSHConnections") != null) {
             commandArray.add("--maxSSHConnections");
             commandArray.add(options.get("maxSSHConnections"));
+        }
+
+        if(options.get("logLevel") != "" && options.get("logLevel") != null) {
+            commandArray.add("--log-level");
+            commandArray.add(options.get("logLevel"));
         }
 
         if (t1.port != null) {
