@@ -1,123 +1,143 @@
+# Run LambdaTest Maven Tunnel on TestMu AI (Formerly LambdaTest)
 
-# LambdaTest Maven Tunnel
-[![Maven Health Check](https://github.com/LambdaTest/lambdatest-maven-tunnel/actions/workflows/healthCheck.yml/badge.svg)](https://github.com/LambdaTest/lambdatest-maven-tunnel/actions/workflows/healthCheck.yml)
-![LambdaTest Logo](https://www.lambdatest.com/resources/images/logos/logo.svg)
+<p align="center">
+  <a href="https://www.testmuai.com/"><img src="https://img.shields.io/badge/MADE%20BY%20TestMu%20AI-000000.svg?style=for-the-badge&labelColor=000" alt="Made by TestMu AI"></a>
+  <a href="https://github.com/LambdaTest/lambdatest-maven-tunnel/actions/workflows/healthCheck.yml"><img src="https://img.shields.io/github/actions/workflow/status/LambdaTest/lambdatest-maven-tunnel/healthCheck.yml?style=for-the-badge&labelColor=000000&label=Health%20Check" alt="Maven Health Check"></a>
+  <a href="https://community.testmuai.com/"><img src="https://img.shields.io/badge/Join%20the%20community-blueviolet.svg?style=for-the-badge&labelColor=000000" alt="Community"></a>
+</p>
 
----
-Java bindings for LambdaTest Tunnel. It supports latest stable Java Versions 20.0, 17.0, etc.
+## Getting Started
+
+[TestMu AI](https://www.testmuai.com/) (Formerly LambdaTest) is the world's first full-stack AI Agentic Quality Engineering platform that empowers teams to test intelligently, smarter, and ship faster. Built for scale, it offers a full-stack testing cloud with 10K+ real devices and 3,000+ browsers. With AI-native test management, MCP servers, and agent-based automation, TestMu AI supports Selenium, Appium, Playwright, and all major frameworks. 
+
+With TestMu AI (Formerly LambdaTest), you can run tunnel-based local tests across real browsers and operating systems. This sample shows how to configure the LambdaTest Maven Tunnel Java bindings to run on the TestMu AI cloud.
+
+- [Sign up on TestMu AI](https://www.testmuai.com/register/) (Formerly LambdaTest).
+- Follow the [TestMu AI Documentation](https://www.testmuai.com/support/docs/) for the full setup walkthrough.
 
 ### Prerequisites
-1. Maven is required to be installed:
-   https://maven.apache.org/install.html
 
-### Environment Setup
-1. Global Dependencies
-    * Install [Java8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-2. Lambdatest Credentials
-    * Set LambdaTest username and access key in environment variables. It can be obtained from [LambdaTest dashboard](https://automation.lambdatest.com/)    
-    example:
-    - For linux/mac
-    ```
-    export LT_USERNAME="YOUR_USERNAME"
-    export LT_ACCESS_KEY="YOUR ACCESS KEY"
-    
-    ```
-    - For Windows
-    ```
-    set LT_USERNAME="YOUR_USERNAME"
-    set LT_ACCESS_KEY="YOUR ACCESS KEY"
-    
-    ```
-3. Add following dependency to your POM.xml file
+- [Java 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) or later (supports Java 17.0, 20.0, etc.)
+- [Maven](https://maven.apache.org/install.html) installed
+- A TestMu AI (Formerly LambdaTest) account — [sign up here](https://www.testmuai.com/register/)
+
+### Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/LambdaTest/lambdatest-maven-tunnel.git
+cd lambdatest-maven-tunnel
+```
+
+Add the following dependency to your `pom.xml` file:
+
 ```xml
 <dependency>
     <groupId>com.github.lambdatest</groupId>
-	  <artifactId>lambdatest-tunnel-binary</artifactId>
+    <artifactId>lambdatest-tunnel-binary</artifactId>
     <version>2.0.2</version>
 </dependency>
 ```
-## Example
+
+Set your TestMu AI credentials as environment variables:
+
+**Linux/macOS:**
+```bash
+export LT_USERNAME="YOUR_USERNAME"
+export LT_ACCESS_KEY="YOUR_ACCESS_KEY"
+```
+
+**Windows:**
+```bash
+set LT_USERNAME="YOUR_USERNAME"
+set LT_ACCESS_KEY="YOUR_ACCESS_KEY"
+```
+
+### Run tests
+
+Use the Java bindings to start and stop a tunnel in your test code:
 
 ```java
 import com.lambdatest.tunnel.Tunnel;
 
-# creates an instance of Tunnel
+// creates an instance of Tunnel
 Tunnel t = new Tunnel();
 
-# replace <lambdatest-username>,<lambdatest-accesskey> with your username and key. You can also set an environment variable - "LT_USERNAME" and "LT_ACCESS_KEY".
+// replace with your credentials or set LT_USERNAME / LT_ACCESS_KEY env vars
 HashMap<String, String> tunnelArgs = new HashMap<String, String>();
 tunnelArgs.put("user", "<lambdatest-username>");
 tunnelArgs.put("key", "<lambdatest-accesskey>");
 
-# starts the tunnel instance with the required arguments
+// starts the tunnel instance with the required arguments
 t.start(tunnelArgs);
 
-# stops the tunnel instance
+// ... run your tests ...
+
+// stops the tunnel instance
 t.stop();
 ```
-## Arguments
 
-Apart from the username and access key, all other lambdatest tunnel parameters are optional.
+Optional tunnel arguments:
 
-#### Change Tunnel Name
 ```java
-tunnelArgs.put("tunnelName","YourName");
+tunnelArgs.put("tunnelName", "YourName");
+tunnelArgs.put("pidFile", "Your/pid/path");
+tunnelArgs.put("dir", "give/lambda/directory/path");
+tunnelArgs.put("logFile", "give/tunnel/log/directory/path");
 ```
-#### Change pid path
-```java
-tunnelArgs.put("pidFile","Your/pid/path");
-```
-#### Change directory path
-```java
-tunnelArgs.put("dir","give/lambda/directory/path");
-```
-#### Change tunnel.log path
-```java
-tunnelArgs.put("logFile","give/tunnel/log/directory/path");
-```
-For full list of tunnel parameters, please refer tunnel parameters documentation file.
 
-### Advice/Troubleshooting
-1. It may be useful to use a Java IDE such as IntelliJ or Eclipse to help troubleshoot potential issues. 
+For a full list of tunnel parameters, refer to the [TestMu AI Tunnel documentation](https://www.testmuai.com/support/docs/).
 
-## About LambdaTest
-[LambdaTest](https://www.lambdatest.com/) is a cloud based selenium grid infrastructure that can help you run automated cross browser compatibility tests on 2000+ different browser and operating system environments. LambdaTest supports all programming languages and frameworks that are supported with Selenium, and have easy integrations with all popular CI/CD platforms. It's a perfect solution to bring your [selenium automation testing](https://www.lambdatest.com/selenium-automation) to cloud based infrastructure that not only helps you increase your test coverage over multiple desktop and mobile browsers, but also allows you to cut down your test execution time by running tests on parallel.
+### Local testing with TestMu AI Tunnel
 
-### Steps to publish
-1. Create a Ticket in OSSRH for new release using "support@lambdatest.com" credential.. Wait for approval.
-   Example:https://issues.sonatype.org/browse/OSSRH-66845
-2. Validate approval by login into https://oss.sonatype.org/#welcome using "support@lambdatest.com" credential.
-3. Generating gpg passphrase
-```java
-gpg --gen-key
-``` 
-4. Place below content after replacing PASSWORD with "support@lambdatest.com"`s password and PASSPHRASE with your gpg passphrase into ~/.m2/settings.xml file.
-```java
-<settings>
-  <servers>
-    <server>
-      <id>ossrh</id>
-      <username>Lambdatest</username>
-      <password>PASSWORD</password>
-    </server>
-  </servers>
-  <profiles>
-    <profile>
-      <id>ossrh</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-<settings>
-      </activation>
-      <properties>
-        <gpg.executable>gpg</gpg.executable>
-        <gpg.passphrase>PASSPHRASE</gpg.passphrase>
-      </properties>
-    </profile>
-  </profiles>
-</settings>
-```
-5. Go inside lambdatest-mavan-tunnel and execute below command to deploy newer version to nexus repository manager.
-```java
-mvn clean deploy
-```
-6. After successfull deploy to nexus repository manager. Your central maven repository will be in sync with new version after few hours.(In my case took almost 2 days)
+To test locally hosted apps, set up the TestMu AI tunnel. OS-specific guides:
+
+- [Local Testing on Windows](https://www.testmuai.com/support/docs/local-testing-for-windows/)
+- [Local Testing on macOS](https://www.testmuai.com/support/docs/local-testing-for-macos/)
+- [Local Testing on Linux](https://www.testmuai.com/support/docs/local-testing-for-linux/)
+
+After starting the tunnel, pass `"tunnel": true` in your desired capabilities to route test traffic through the tunnel.
+
+## Contributions
+
+Contributions are welcome. Open an issue to discuss your idea before submitting a pull request. When reporting bugs, include your Node.js version, OS, and Angular CLI version.
+
+## TestMu AI (Formerly LambdaTest) Community
+
+Connect with testers and developers in the [TestMu AI Community](https://community.testmuai.com/). Ask questions, share what you are building, and discuss best practices in test automation and DevOps.
+  
+## TestMu AI (Formerly LambdaTest) Certifications
+
+Earn free [TestMu AI Certifications](https://www.testmuai.com/certifications/) for testers, developers, and QA engineers. Validate your skills in Selenium, Cypress, Playwright, Appium, Espresso and more. Industry-recognized, shareable on LinkedIn, and built by practitioners, not marketers.
+
+## Learning Resources by TestMu AI (Formerly LambdaTest)
+
+Learn modern testing through tutorials, guides, videos, and weekly updates:
+
+* [TestMu AI Blog](https://www.testmuai.com/blog/)
+* [TestMu AI Learning Hub](https://www.testmuai.com/learning-hub/)
+* [TestMu AI on YouTube](https://www.youtube.com/@TestMuAI)
+* [TestMu AI Newsletter](https://www.testmuai.com/newsletter/)
+  
+## LambdaTest is Now TestMu AI
+
+On **January 12, 2026**, [LambdaTest evolved to TestMu AI](https://www.testmuai.com/lambdatest-is-now-testmuai/), the world's first fully autonomous **Agentic AI Quality Engineering Platform**.
+
+Same team. Same infrastructure. Same customer accounts. All existing LambdaTest logins, scripts, capabilities, and integrations continue to work without change.
+
+ð Find the new home for [LambdaTest](https://www.testmuai.com).
+
+### How LambdaTest Evolved into TestMu AI
+
+In 2017, we launched LambdaTest with a simple mission: make testing fast, reliable, and accessible. As LambdaTest grew, we expanded into Test Intelligence, Visual Regression Testing, Accessibility Testing, API Testing, and Performance Testing, covering the full depth of the testing lifecycle.
+
+As software development entered the AI era, testing had to evolve, too. We rebuilt the architecture to be AI-native from the ground up, with autonomous agents that **plan, author, execute, analyze, and optimize tests** while keeping humans in the loop. The platform integrates with your repos, CI, IDEs, and terminals, continuously learning from every code change and development signal.
+
+That evolution earned a new name: **TestMu AI**, built for an AI-first future of quality engineering. TestMu is not a new name for us. It is the name of our annual community conference, which has brought together 100,000+ quality engineers to discuss how AI would reshape testing, long before that became an industry norm. 
+
+What started as a high-performance cloud testing platform has transformed into an AI-native, multi-agent system powering a connected, end-to-end quality layer. That evolution defined a new identity: LambdaTest evolved into TestMu AI, built for an AI-first future of quality engineering.
+
+## Support
+
+Got a question? Email [support@testmuai.com](mailto:support@testmuai.com) or chat with us 24x7 from our chat portal.
