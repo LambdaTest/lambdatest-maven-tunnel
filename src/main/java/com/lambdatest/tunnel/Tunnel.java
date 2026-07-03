@@ -29,7 +29,7 @@ public class Tunnel {
     private static final List<String> IGNORE_KEYS = Arrays.asList("user", "key", "infoAPIPort", "binarypath",
             "load-balanced", "mitm", "pacfile", "mTLSHosts", "clientKey",
             "clientCert", "allowHosts", "verbose", "serverDomain", "usePrivateIp", "retry-proxy-error",
-            "retry-proxy-error-count", "ntlm", "ntlmPassword", "ntlmUsername", "maxSSHConnections");
+            "retry-proxy-error-count", "ntlm", "ntlmPassword", "ntlmUsername", "maxSSHConnections", "basicAuth");
 
     private boolean tunnelFlag = false;
     private final int MAX_TUNNEL_STARTUP_RETRY_COUNT = 20;
