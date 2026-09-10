@@ -12,7 +12,7 @@
 With TestMu AI (Formerly LambdaTest), you can run tunnel-based local tests across real browsers and operating systems. This Maven library provides Java bindings for the TestMu AI (Formerly LambdaTest) tunnel binary, enabling programmatic tunnel management in your Maven projects.
 
 - [Sign up on TestMu AI](https://www.testmuai.com/register/) (Formerly LambdaTest).
-- Follow the [TestMu AI Documentation](https://www.testmuai.com/support/docs/maven-tunnel-for-locally-hosted-web-applications/) for the full setup walkthrough.
+- Follow the [Set up TestMu AI Tunnel with Maven](https://www.testmuai.com/support/docs/maven-tunnel-for-locally-hosted-web-applications/) for the full setup walkthrough.
 
 ### Prerequisites
 
